@@ -1,32 +1,3 @@
-# LOGIN-FLASK
-
-Proyecto Flask para login. Instrucciones rápidas para preparar el entorno virtual en Windows (PowerShell).
-
-1) Crear el entorno virtual (si no está creado):
-
-```powershell
-python -m venv .venv
-```
-
-2) Activar el entorno virtual:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-3) Actualizar pip e instalar dependencias desde `requirements.txt`:
-
-```powershell
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-4) Ejecutar la aplicación:
-
-```powershell
-python app.py
-```
-
 # Login-CRUD-Flask 🚀🔐
 
 <p align="center">
@@ -109,11 +80,6 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-> Si usas cmd.exe:
-> ```
-> .\.venv\Scripts\activate.bat
-> ```
-
 ### 2) Actualizar pip e instalar dependencias
 
 ```powershell
@@ -149,12 +115,7 @@ driver=ODBC Driver 17 for SQL Server
 
 - Asegúrate de que SQL Server está accesible desde la máquina.
 - Instala el driver ODBC de Microsoft (por ejemplo: ODBC Driver 17 for SQL Server). En Windows se descarga desde el sitio de Microsoft.
-- Las consultas en el modelo (`MODEL/User.PY`) usan stored procedures (ej.: `sp_GetAllLoginDetails`, `sp_InsertLoginDetails`, `sp_UpdateLoginDetails`, `sp_DeleteLoginDetails`). Asegúrate que existan o adapta las consultas a tu esquema.
-
-Recomendación: en vez de un archivo con credenciales, usa variables de entorno o `.env` (y `python-dotenv`) para mayor seguridad.
-
-Ejemplo con variables de entorno (en `BDD/Conexion.py` leer `os.environ['DB_SERVER']`, etc.).
-
+- Las consultas en el modelo (`MODEL/User.PY`) usan stored procedures (ej.: `sp_GetAllLoginDetails`, `sp_InsertLoginDetails`, `sp_UpdateLoginDetails`, `sp_DeleteLoginDetails`). 
 ---
 
 ## Rutas principales / Uso 🧭
@@ -181,38 +142,16 @@ Ejemplo con variables de entorno (en `BDD/Conexion.py` leer `os.environ['DB_SERV
 - Protege rutas sensibles y valida todas las entradas del usuario (sanitización).
 - Usa tokens (email token) para restablecer contraseñas en lugar de permitir cambios directos desde un formulario público.
 
----
-
-## Cómo contribuir 🤝
-
-1. Haz fork del repo en GitHub.  
-2. Crea una rama: `git checkout -b feature/mi-cambio`.  
-3. Haz commits atómicos y descriptivos.  
-4. Abre un Pull Request describiendo los cambios.
-
-Por favor, abre un issue antes de cambios grandes de arquitectura.
-
----
-
 ## Autores 👤
 
-- Paulolivo4 — desarrollador principal
-
-Si quieres añadir colaboradores, dímelo y lo agregamos al README.
+- Paulolivo4 — desarrollador 
+- Isaaidk - desarrollador 
 
 ---
 
 ## Licencia 📜
 
-El proyecto no trae licencia por defecto. Si quieres compartirlo públicamente, te recomiendo MIT:
-
-```
-MIT License
-
-Copyright (c) 2025 Paulolivo4
-
-Permission is hereby granted, free of charge, to any person obtaining a copy...
-```
+El proyecto no trae licencia por defecto. 
 
 ---
 
@@ -231,12 +170,3 @@ Q: ¿Cómo oculto mis credenciales antes de subir a GitHub?
 A: Añade `BDD/DatabaseConfig.txt` a `.gitignore` y mueve las credenciales a variables de entorno o a `.env` (no versionar `.env`).
 
 ---
-
-Si quieres, puedo:
-
-- Generar y añadir el `README.md` directamente al repo (si me lo confirmas).  
-- Crear el `LICENSE` MIT y añadirlo.  
-- Generar un `.env.example` con las variables necesarias.  
-- Ayudarte a crear el repositorio en GitHub (te doy los pasos exactos o los ejecuto localmente si me autorizas).
-
-¿Quieres que te entregue también una versión en inglés? 🌎
