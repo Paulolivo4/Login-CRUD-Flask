@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login</title>
+}</head>
+<body>
+  <h1>Iniciar sesión</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for m in messages %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form action="{{ url_for('login_bp.login_submit') }}" method="post">
+    <input type="email" name="email" placeholder="Correo" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
+    {% endif %}
+    <button type="submit">Entrar</button>
+  </form>
+
+  <p>¿No tienes cuenta? <a href="{{ url_for('login_bp.register') }}">Regístrate</a></p>
+      <hr>
+
+
+   </p>
+
+     <p>Olvidé mi contraseña  <a href="{{ url_for('login_bp.reset_password') }}">reseteala</a></p>
+      <hr>
+
+
+   </p>
+
+</body>
+</html>

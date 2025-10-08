@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../CSS/Index.css">
+    <title>Index</title>
+</head>
+<body>
+    <h1>Usuarios</h1>
+
+        <!-- Botón de logout (visible solo si hay sesión) -->
+        {% if session.get('user_email') %}
+            <p style="text-align:left;">
+                <a href="{{ url_for('login_bp.logout') }}" role="button">Cerrar sesión</a>
+            </p>
+        {% endif %}
+
+    <!-- Mensajes de flash -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="color:green;">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Formulario para crear un nuevo usuario -->
+    <form action="{{ url_for('user_bp.create_user') }}" method="post">
+        <input type="text" name="name" placeholder="Nombre" required>
+        <input type="text" name="lastname" placeholder="Apellido" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    <h3>Editar Contraseña</h3>
+    <!-- Formulario para actualizar la contraseña de un usuario -->
+    <form action="{{ url_for('user_bp.update_user') }}" method="post">
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="password" name="new_password" placeholder="Nueva Contraseña" required>
+        <button type="submit">Actualizar Contraseña</button>
+    </form>
+
+    <h4>Eliminar Usuario</h4>
+    <!-- Formulario para eliminar un usuario -->
+    <form action="{{ url_for('user_bp.delete_user') }}" method="post">
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <button type="submit">Eliminar</button>
+    </form>
+
+    <!-- Lista de usuarios -->
+    <h2 id="usuarios">Lista de Usuarios Registrados</h2>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in usuarios %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>{{ user[3] }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align:center;">No hay usuarios registrados</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+    
+    
+        <!-- Script para asegurar scroll al fragmento #usuarios en navegadores que no saltan automáticamente -->
+        <script>
+            window.addEventListener('load', function() {
+                try {
+                    if (window.location.hash === '#usuarios') {
+                        var el = document.getElementById('usuarios');
+                        if (el) {
+                            // scroll suave al elemento
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error al hacer scroll al fragmento:', e);
+                }
+            });
+        </script>
+
+
+
+</body>
+</html>
