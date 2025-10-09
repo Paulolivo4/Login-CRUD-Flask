@@ -1,3 +1,0 @@
-server=DESKTOP-U5C95MQ\MSSQLSERVER01
-database=LOGINDB
-driver=ODBC Driver 17 for SQL Server

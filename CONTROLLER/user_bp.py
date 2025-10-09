@@ -4,12 +4,10 @@ from MODEL.User import User
 # Definimos el Blueprint
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')  # opcional url_prefix
 
-
+# Protege todas las rutas bajo /users/ para que solo usuarios autenticados accedan
 @user_bp.before_request
 def require_login_for_users():
-    # Protege todas las rutas bajo /users/ para que solo usuarios autenticados accedan
     if 'user_email' not in session:
-        # Devolver 403 para bloquear acceso directo por URL cuando no hay sesión
         abort(403)
 
 # -------------------------------
@@ -18,7 +16,6 @@ def require_login_for_users():
 @user_bp.route('/')
 def index():
     usuarios = User.obtenerusuarios()
-    # Renderizar la plantilla completa que muestra la lista de usuarios
     return render_template('VIEW/Index.html', usuarios=usuarios)
 
 # -------------------------------

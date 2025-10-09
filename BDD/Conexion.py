@@ -7,7 +7,7 @@ def get_connection():
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=DESKTOP-U5C95MQ\MSSQLSERVER01;"
             "DATABASE=LOGINDB;"
-            "Trusted_Connection=yes;"  # Si usas autenticación de Windows
+            "Trusted_Connection=yes;"  
         )
         return connection
     except Exception as ex:

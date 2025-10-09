@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from MODEL import User  # Asegúrate que la carpeta MODEL tenga __init__.py
-from CONTROLLER import user_controller  # Importa el controlador
-from CONTROLLER.user_bp import user_bp  # Importa el Blueprint
+from MODEL import User 
+from CONTROLLER.user_bp import user_bp  
 from CONTROLLER.login_controller import login_bp
 import functools
 

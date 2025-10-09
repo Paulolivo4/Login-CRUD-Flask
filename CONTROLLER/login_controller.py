@@ -58,7 +58,6 @@ def logout():
 
 @login_bp.route('/reset-password')
 def reset_password():
-    # Mostrar formulario para restablecer contraseña (público)
     return render_template('VIEW/reset_password.html')
 
 
