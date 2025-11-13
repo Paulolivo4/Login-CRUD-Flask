@@ -6,7 +6,6 @@ login_bp = Blueprint('login_bp', __name__)
 
 @login_bp.route('/login')
 def login():
-    # Pasar parámetro 'next' si existe para redirigir después del login
     next_url = request.args.get('next')
     return render_template('VIEW/login.html', next=next_url)
 
@@ -16,13 +15,17 @@ def login_submit():
     email = request.form.get('email')
     password = request.form.get('password')
     next_url = request.form.get('next')
-    if User.authenticate(email, password):
-        session['user_email'] = email
+    user = User.authenticate(email, password)
+    if user:
+        session['user_email'] = user.get('EMAIL') or email
+        session['user_id'] = user.get('ID')
+        session['user_role'] = user.get('ROL_ID') or user.get('ROL')
+        session['user_name'] = user.get('NAME')
         flash('Has iniciado sesión correctamente')
-        # Si se proporcionó next y parece seguro (ruta interna), redirigir ahí
+        
         if next_url and next_url.startswith('/'):
             return redirect(next_url)
-        return redirect(url_for('user_bp.index'))
+        return redirect(url_for('user_bp.dashboard'))
     else:
         flash('Credenciales inválidas')
         return redirect(url_for('login_bp.login'))
@@ -39,9 +42,13 @@ def register_submit():
     lastname = request.form.get('lastname')
     email = request.form.get('email')
     password = request.form.get('password')
-    # Crear usuario en BD
     try:
-        User.create_new_USER(name, lastname, email, password)
+        rol_raw = request.form.get('role')
+        rol_id = int(rol_raw) if rol_raw is not None else 3
+    except Exception:
+        rol_id = 3
+    try:
+        User.create_new_USER(name, lastname, email, password, rol_id=rol_id)
         flash('Usuario registrado correctamente. Ahora puedes iniciar sesión.')
         return redirect(url_for('login_bp.login'))
     except Exception as e:

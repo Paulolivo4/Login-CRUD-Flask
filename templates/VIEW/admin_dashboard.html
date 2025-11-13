@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Administrador</title>
+</head>
+<body>
+  <h1>Panel de Administrador</h1>
+
+  {% if session.get('user_name') %}
+    <p>Bienvenido, {{ session.get('user_name') }} (<strong>{{ session.get('user_email') }}</strong>)</p>
+  {% endif %}
+
+  <p><a href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a></p>
+
+  <h2>Usuarios registrados</h2>
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Email</th>
+        <th>Rol</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in usuarios %}
+        <tr>
+          <td>{{ user[0] }}</td>
+          <td>{{ user[1] }}</td>
+          <td>{{ user[2] }}</td>
+          <td>{{ user[3] }}</td>
+          <td>{{ user[5] if user|length > 5 else '' }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5">No hay usuarios registrados</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><a href="{{ url_for('user_bp.index') }}">Gestionar usuarios</a></p>
+</body>
+</html>
