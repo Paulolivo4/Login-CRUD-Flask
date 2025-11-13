@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort
-from MODEL.User import User
+from MODEL.users import User
 
 
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
