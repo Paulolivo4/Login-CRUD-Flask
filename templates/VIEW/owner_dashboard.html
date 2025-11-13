@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Dueño</title>
+</head>
+<body>
+  <h1>Panel de Dueño de Restaurante</h1>
+  {% if session.get('user_name') %}
+    <p>Bienvenido, {{ session.get('user_name') }} (<strong>{{ session.get('user_email') }}</strong>)</p>
+  {% endif %}
+
+  <p><a href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a></p>
+
+  <p>Aquí puedes gestionar tu restaurante y menús (pendiente de implementar).</p>
+</body>
+</html>

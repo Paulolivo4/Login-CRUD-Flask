@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear Restaurante (Admin)</title>
+</head>
+<body>
+  <h1>Crear Restaurante (Administrador)</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for m in messages %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <p>Admin: {{ session.get('user_email') }}</p>
+  <p><a href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a></p>
+
+  <h2>Crear nuevo restaurante</h2>
+  <form action="{{ url_for('admin_bp.create_restaurant') }}" method="post">
+    <input type="email" name="email_dueno" placeholder="Email del dueño (existente)" required>
+    <input type="text" name="nombre" placeholder="Nombre del restaurante" required>
+    <input type="text" name="direccion" placeholder="Dirección">
+    <input type="text" name="telefono" placeholder="Teléfono">
+    <button type="submit">Crear restaurante</button>
+  </form>
+
+  <h2>Restaurantes existentes</h2>
+  <table border="1" cellpadding="6">
+    <thead>
+      <tr><th>ID</th><th>ID Dueño</th><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Estado</th><th>Fecha Creación</th></tr>
+    </thead>
+    <tbody>
+      {% for r in restaurantes %}
+        <tr>
+          <td>{{ r[0] }}</td>
+          <td>{{ r[1] }}</td>
+          <td>{{ r[2] }}</td>
+          <td>{{ r[3] }}</td>
+          <td>{{ r[4] }}</td>
+          <td>{{ r[5] }}</td>
+          <td>{{ r[6] }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7">No hay restaurantes</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+</html>

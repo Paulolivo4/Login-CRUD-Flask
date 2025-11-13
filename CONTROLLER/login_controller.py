@@ -6,7 +6,6 @@ login_bp = Blueprint('login_bp', __name__)
 
 @login_bp.route('/login')
 def login():
-    # Pasar parámetro 'next' si existe para redirigir después del login
     next_url = request.args.get('next')
     return render_template('VIEW/login.html', next=next_url)
 
@@ -16,13 +15,32 @@ def login_submit():
     email = request.form.get('email')
     password = request.form.get('password')
     next_url = request.form.get('next')
-    if User.authenticate(email, password):
-        session['user_email'] = email
+    user = User.authenticate(email, password)
+    if user:
+        # Guardar información mínima en sesión (soportar distintos nombres de columna)
+        def pick(u, *keys):
+            for k in keys:
+                if isinstance(u, dict) and k in u and u[k] is not None:
+                    return u[k]
+            return None
+
+        session['user_email'] = pick(user, 'EMAIL', 'Email', 'email') or email
+        session['user_id'] = pick(user, 'ID', 'Id', 'id')
+        # Algunos SP/consultas pueden devolver ROL_ID o ROL u otras variantes
+        session['user_role'] = pick(user, 'ROL_ID', 'ROL', 'Rol', 'rol_id', 'rol')
+        session['user_name'] = pick(user, 'NAME', 'Name', 'name')
         flash('Has iniciado sesión correctamente')
-        # Si se proporcionó next y parece seguro (ruta interna), redirigir ahí
+        
         if next_url and next_url.startswith('/'):
             return redirect(next_url)
-        return redirect(url_for('user_bp.index'))
+        # Redirigir según rol: 1=admin, 2=dueño, 3=cliente
+        role = session.get('user_role')
+        if role in (1, '1'):
+            return redirect(url_for('user_bp.dashboard'))
+        if role in (2, '2'):
+            return redirect(url_for('owner_bp.menus'))
+        # Por defecto o rol 3 -> cliente
+        return redirect(url_for('client_bp.reservations'))
     else:
         flash('Credenciales inválidas')
         return redirect(url_for('login_bp.login'))
@@ -39,9 +57,13 @@ def register_submit():
     lastname = request.form.get('lastname')
     email = request.form.get('email')
     password = request.form.get('password')
-    # Crear usuario en BD
     try:
-        User.create_new_USER(name, lastname, email, password)
+        rol_raw = request.form.get('role')
+        rol_id = int(rol_raw) if rol_raw is not None else 3
+    except Exception:
+        rol_id = 3
+    try:
+        User.create_new_USER(name, lastname, email, password, rol_id=rol_id)
         flash('Usuario registrado correctamente. Ahora puedes iniciar sesión.')
         return redirect(url_for('login_bp.login'))
     except Exception as e:
