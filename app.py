@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from MODEL import User 
+from MODEL import users 
 from CONTROLLER.user_bp import user_bp  
 from CONTROLLER.login_controller import login_bp
 from CONTROLLER.client_controller import client_bp
