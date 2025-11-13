@@ -6,6 +6,7 @@ from CONTROLLER.client_controller import client_bp
 from CONTROLLER.owner_controller import owner_bp
 from CONTROLLER.admin_controller import admin_bp
 import functools
+import os
 
 app = Flask(__name__)
 
@@ -37,5 +38,6 @@ def index():
 def forbidden(e):
     return render_template('VIEW/403.html'), 403
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=debug_mode)
