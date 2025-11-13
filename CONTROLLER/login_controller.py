@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from MODEL.User import User
+from MODEL.users import User
 
 login_bp = Blueprint('login_bp', __name__)
 
