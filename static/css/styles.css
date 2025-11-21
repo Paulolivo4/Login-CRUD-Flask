@@ -1,0 +1,81 @@
+/* Styles principales para la app de comida - responsive y sin tocar funcionalidad */
+:root{
+  --bg:#fff8f3; /* color de fondo suave */
+  --primary:#d64531; /* tomate / rojo apetitoso */
+  --accent:#f39c12; /* naranja */
+  --muted:#6b7a40; /* verde oliva */
+  --text:#2b2b2b;
+  --card:#ffffff;
+  --glass: rgba(255,255,255,0.6);
+  --max-width:1100px;
+}
+
+/* Reset muy ligero */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;padding:0;background:linear-gradient(180deg,var(--bg),#fff)}
+body{color:var(--text);line-height:1.4}
+
+.container{width:100%;max-width:var(--max-width);margin:0 auto;padding:16px}
+
+/* Cabeceras */
+h1,h2,h3,h4{color:var(--text);margin:8px 0}
+
+/* Barra de navegación / header opcional */
+.site-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:4px solid rgba(0,0,0,0.03)}
+.brand{display:flex;gap:10px;align-items:center}
+.brand .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));display:inline-block}
+.nav-links a{color:var(--muted);text-decoration:none;margin-left:12px}
+.nav-links a.button{background:var(--primary);color:#fff;padding:8px 12px;border-radius:8px}
+
+/* Formularios */
+form{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(46,61,73,0.08);display:block}
+input[type=text],input[type=email],input[type=password],select,textarea{width:100%;Padding:10px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;margin:8px 0;font-size:15px}
+button, .btn{background:var(--primary);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+button.secondary, .btn.secondary{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+
+/* Mensajes de flash */
+ul.flash, ul{list-style:none;padding:0;margin:8px 0}
+ul.flash li{background:#e9f7ef;color:#2b7a4b;padding:8px 10px;border-radius:8px}
+
+/* Tabla sencilla responsive */
+table{width:100%;border-collapse:collapse;margin:10px 0;background:var(--card);border-radius:8px;overflow:hidden}
+thead{background:linear-gradient(90deg,rgba(214,69,49,0.95),rgba(243,156,18,0.95));color:#fff}
+th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(0,0,0,0.05)}
+tbody tr:nth-child(even){background:rgba(0,0,0,0.03)}
+
+/* Cards para restaurantes / items */
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 20px rgba(46,61,73,0.06)}
+.card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+
+/* Footer ligero */
+.site-footer{padding:18px;text-align:center;color:rgba(0,0,0,0.6);font-size:14px}
+
+/* Responsiveness */
+@media (max-width:900px){
+  .card-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:600px){
+  .card-grid{grid-template-columns:1fr}
+  .site-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .container{padding:12px}
+  input[type=text],input[type=email],input[type=password],select,textarea{font-size:16px}
+  table, thead, tbody, th, td, tr{display:block}
+  thead{display:none}
+  tr{margin-bottom:12px}
+  td{border:none;display:flex;justify-content:space-between;padding:8px;background:rgba(255,255,255,0.02)}
+  td:before{content:attr(data-label);font-weight:600;color:rgba(0,0,0,0.6);margin-right:10px}
+}
+
+/* Pequeños utilitarios */
+.muted{color:rgba(0,0,0,0.6)}
+.center{text-align:center}
+.stack{display:flex;flex-direction:column;gap:8px}
+
+/* Accesibilidad */
+button:focus,input:focus,select:focus{outline:3px solid rgba(243,156,18,0.2)}
+
+/* Ajustes para enlaces dentro de tablas/acciones */
+.action-link{color:var(--primary);text-decoration:none;font-weight:600}
+
+/* End of styles */
