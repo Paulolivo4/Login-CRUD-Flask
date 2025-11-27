@@ -7,13 +7,40 @@
   <title>Panel de Dueño</title>
 </head>
 <body>
-  <h1>Panel de Dueño de Restaurante</h1>
-  {% if session.get('user_name') %}
-    <p>Bienvenido, {{ session.get('user_name') }} (<strong>{{ session.get('user_email') }}</strong>)</p>
-  {% endif %}
 
-  <p><a href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a></p>
+  <div class="dashboard-container">
 
-  <p>Aquí puedes gestionar tu restaurante y menús (pendiente de implementar).</p>
+    <div class="dashboard-header">
+      <h1>Panel de Dueño de Restaurante</h1>
+
+      {% if session.get('user_name') %}
+        <p class="welcome">
+          Bienvenido, <strong>{{ session.get('user_name') }}</strong>  
+          (<span>{{ session.get('user_email') }}</span>)
+        </p>
+      {% endif %}
+
+      <a class="btn-logout" href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a>
+    </div>
+
+    <div class="card">
+      <h2>Gestión del Restaurante</h2>
+      <p>Aquí podrás administrar tu restaurante, menús, horarios y mesas.</p>
+      <p style="opacity: 0.7;">(Funcionalidad pendiente de implementación)</p>
+    </div>
+
+    <div class="card">
+      <h2>Reservas de Clientes</h2>
+      <p>Próximamente podrás ver las reservas realizadas por tus clientes.</p>
+      <p style="opacity: 0.7;">(Próximamente)</p>
+    </div>
+
+    <div class="card">
+      <h2>Perfil del Dueño</h2>
+      <p>Más adelante podrás actualizar tu información de contacto y datos del negocio.</p>
+    </div>
+
+  </div>
+
 </body>
 </html>

@@ -7,31 +7,49 @@
   <title>Registro</title>
 </head>
 <body>
-  <h1>Registro</h1>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for m in messages %}
-          <li>{{ m }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
-  <form action="{{ url_for('login_bp.register_submit') }}" method="post">
-    <input type="text" name="name" placeholder="Nombre" required>
-    <input type="text" name="lastname" placeholder="Apellido" required>
-    <input type="email" name="email" placeholder="Correo" required>
-    <input type="password" name="password" placeholder="Contraseña" required>
-    <label for="role">Rol:</label>
-    <select name="role" id="role">
-      <option value="3" selected>Cliente</option>
-      <option value="2">Dueño de Restaurante</option>
-      <option value="1">Administrador</option>
-    </select>
-    <button type="submit">Crear cuenta</button>
-  </form>
+  <div class="form-container">
 
-  <p>¿Ya tienes cuenta? <a href="{{ url_for('login_bp.login') }}">Inicia sesión</a></p>
+    <h1>Crear Cuenta</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for m in messages %}
+            <div class="flash">{{ m }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Registration Form -->
+    <form class="form" action="{{ url_for('login_bp.register_submit') }}" method="post">
+
+      <input class="input" type="text" name="name" placeholder="Nombre" required>
+      <input class="input" type="text" name="lastname" placeholder="Apellido" required>
+
+      <input class="input" type="email" name="email" placeholder="Correo electrónico" required>
+
+      <input class="input" type="password" name="password" placeholder="Contraseña" required>
+
+      <label class="label" for="role">Rol</label>
+      <select class="input" name="role" id="role">
+        <option value="3" selected>Cliente</option>
+        <option value="2">Dueño de Restaurante</option>
+        <option value="1">Administrador</option>
+      </select>
+
+      <button class="btn" type="submit">Registrarme</button>
+
+    </form>
+
+    <p class="form-footer">
+      ¿Ya tienes una cuenta?
+      <a class="link" href="{{ url_for('login_bp.login') }}">Inicia sesión aquí</a>
+    </p>
+
+  </div>
+
 </body>
 </html>

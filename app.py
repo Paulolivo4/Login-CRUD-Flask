@@ -1,43 +1,82 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from MODEL import User 
-from CONTROLLER.user_bp import user_bp  
+import logging
+import os
+from dotenv import load_dotenv
+from flask import Flask, render_template, redirect, url_for
+
+
+load_dotenv()
+
+from config import get_config
+from CONTROLLER.user_bp import user_bp
 from CONTROLLER.login_controller import login_bp
 from CONTROLLER.client_controller import client_bp
 from CONTROLLER.owner_controller import owner_bp
 from CONTROLLER.admin_controller import admin_bp
-import functools
-import os
-
-app = Flask(__name__)
-
-app.secret_key = '12345678'
-app.register_blueprint(user_bp)
-app.register_blueprint(login_bp)
-app.register_blueprint(client_bp)
-app.register_blueprint(owner_bp)
-app.register_blueprint(admin_bp)
 
 
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if 'user_email' not in session:
-            flash('Por favor, inicia sesión para acceder')
-            return redirect(url_for('login_bp.login'))
-        return view(**kwargs)
-    return wrapped_view
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-@app.route('/')
-def index():
-    # Al abrir la aplicación, redirigir a la pantalla de login
-    return redirect(url_for('login_bp.login'))
+def create_app():
+    
+    app = Flask(__name__)
+
+    config = get_config()
+    app.config.from_object(config)
+
+    app.register_blueprint(user_bp)
+    app.register_blueprint(login_bp)
+    app.register_blueprint(client_bp)
+    app.register_blueprint(owner_bp)
+    app.register_blueprint(admin_bp)
+
+    register_error_handlers(app)
+
+    register_main_routes(app)
+
+    logger.info("Application initialized successfully")
+    return app
 
 
-@app.errorhandler(403)
-def forbidden(e):
-    return render_template('VIEW/403.html'), 403
+def register_main_routes(app):
+    
 
-if __name__ == "__main__":
-    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=debug_mode)
+    @app.route('/')
+    def index():
+
+        return redirect(url_for('login_bp.login'))
+
+
+def register_error_handlers(app):
+    
+
+    @app.errorhandler(403)
+    def forbidden(error):
+        
+        return render_template('VIEW/403.html'), 403
+
+    @app.errorhandler(404)
+    def not_found(error):
+        
+        logger.warning(f"404 error: {error}")
+        return render_template('VIEW/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        
+        logger.error(f"500 error: {error}")
+        return render_template('VIEW/500.html'), 500
+
+
+if __name__ == '__main__':
+    app = create_app()
+    config = get_config()
+    app.run(
+        host=config.HOST,
+        port=config.PORT,
+        debug=config.DEBUG
+    )

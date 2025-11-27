@@ -7,8 +7,22 @@
   <title>Acceso no autorizado</title>
 </head>
 <body>
-  <h1>403 - Acceso no autorizado</h1>
-  <p>No tienes permiso para ver esta página. Por favor, inicia sesión.</p>
-  <p><a href="{{ url_for('login_bp.login') }}">Ir a Login</a></p>
+
+  <div class="error-container">
+
+    <h1 class="error-title">403</h1>
+    <h2 class="error-subtitle">Acceso no autorizado</h2>
+
+    <p class="error-text">
+      No tienes permiso para acceder a esta página.  
+      Es posible que necesites iniciar sesión o no tengas privilegios suficientes.
+    </p>
+
+    <a class="btn" href="{{ url_for('login_bp.login') }}">
+      Ir al Login
+    </a>
+
+  </div>
+
 </body>
 </html>

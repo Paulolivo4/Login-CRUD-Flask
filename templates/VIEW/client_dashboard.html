@@ -7,13 +7,29 @@
   <title>Panel de Cliente</title>
 </head>
 <body>
-  <h1>Panel de Cliente</h1>
-  {% if session.get('user_name') %}
-    <p>Hola, {{ session.get('user_name') }} (<strong>{{ session.get('user_email') }}</strong>)</p>
-  {% endif %}
 
-  <p><a href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a></p>
+  <div class="dashboard-container">
 
-  <p>Aquí puedes ver y gestionar tus reservas (pendiente de implementar).</p>
+    <div class="dashboard-header">
+      <h1>Panel de Cliente</h1>
+
+      {% if session.get('user_name') %}
+        <p class="welcome">
+          Hola, <strong>{{ session.get('user_name') }}</strong>  
+          (<span>{{ session.get('user_email') }}</span>)
+        </p>
+      {% endif %}
+
+      <a class="btn-logout" href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a>
+    </div>
+
+    <div class="card">
+      <h2>Reservas</h2>
+      <p>Próximamente podrás ver y gestionar tus reservas aquí.</p>
+      <p style="opacity: 0.7;">(Funcionalidad pendiente de implementación)</p>
+    </div>
+
+  </div>
+
 </body>
 </html>
