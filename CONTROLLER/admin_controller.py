@@ -36,7 +36,6 @@ def restaurants():
 
 @admin_bp.route('/restaurants/create', methods=['POST'])
 def create_restaurant():
-    admin_email = session.get('user_email')
     owner_email = request.form.get('email_dueno')
     name = request.form.get('nombre')
     address = request.form.get('direccion')
@@ -48,7 +47,7 @@ def create_restaurant():
         return redirect(url_for('admin_bp.restaurants'))
 
     try:
-        AdminService.create_restaurant(admin_email, owner_email, name, address, phone)
+        AdminService.create_restaurant(owner_email, name, address, phone)
         flash(Config.SUCCESS_MESSAGES['restaurant_created'])
         return redirect(url_for('admin_bp.restaurants'))
     except ValueError as error:

@@ -20,11 +20,24 @@ class OwnerService:
             raise
 
     @staticmethod
+    def get_owner_restaurant(owner_id: int) -> Optional[Tuple]:
+        """Obtiene el restaurante del owner"""
+        try:
+            restaurant = OwnerModel.get_restaurant_by_owner(owner_id)
+            if restaurant:
+                logger.info(f"Retrieved restaurant for owner {owner_id}")
+            return restaurant
+        except Exception as error:
+            logger.error(f"Error retrieving restaurant for owner {owner_id}: {error}")
+            return None
+
+    @staticmethod
     def create_menu(
         restaurant_id: int,
         dish_name: str,
         description: str,
-        price: float
+        price: float,
+        photo_url: Optional[str] = None
     ) -> bool:
         
         if not restaurant_id or restaurant_id <= 0:
@@ -41,7 +54,7 @@ class OwnerService:
 
         try:
             # Role 2 = owner
-            OwnerModel.create_menu(2, restaurant_id, dish_name, description, price)
+            OwnerModel.create_menu(2, restaurant_id, dish_name, description, price, photo_url)
             logger.info(f"Menu item created: {dish_name} for restaurant {restaurant_id}")
             return True
         except Exception as error:
@@ -53,7 +66,8 @@ class OwnerService:
         menu_id: int,
         dish_name: str,
         description: str,
-        price: float
+        price: float,
+        photo_url: Optional[str] = None
     ) -> bool:
         
         if not menu_id or menu_id <= 0:
@@ -70,7 +84,7 @@ class OwnerService:
 
         try:
             # Role 2 = owner
-            OwnerModel.update_menu(2, menu_id, dish_name, description, price)
+            OwnerModel.update_menu(2, menu_id, dish_name, description, price, photo_url)
             logger.info(f"Menu item {menu_id} updated successfully")
             return True
         except Exception as error:

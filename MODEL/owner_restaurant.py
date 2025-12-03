@@ -1,7 +1,8 @@
 import logging
 from typing import List, Tuple, Optional
 
-from BDD.Conexion import get_connection
+from BDD.db import db
+from MODEL.models import Menu, Restaurante, Promocion
 
 logger = logging.getLogger(__name__)
 
@@ -9,27 +10,33 @@ logger = logging.getLogger(__name__)
 class OwnerModel:
 
     @staticmethod
+    def get_restaurant_by_owner(owner_id: int) -> Optional[Tuple]:
+        """Obtiene el restaurante del owner"""
+        restaurant = Restaurante.query.filter_by(ID_DUENO=owner_id).first()
+        if restaurant:
+            return (restaurant.ID_RESTAURANTE, restaurant.NOMBRE, restaurant.ID_DUENO)
+        return None
+
+    @staticmethod
     def create_menu(
         executor_role: int,
         restaurant_id: int,
         dish_name: str,
         description: str,
-        price: float
+        price: float,
+        photo_url: Optional[str] = None
     ) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "EXEC sp_CrearMenu ?, ?, ?, ?, ?",
-                (executor_role, restaurant_id, dish_name, description, price)
-            )
-            conn.commit()
-            logger.info(f"Menu item created: {dish_name} for restaurant {restaurant_id}")
-        except Exception as error:
-            logger.error(f"Error creating menu item {dish_name}: {error}")
-            raise
-        finally:
-            conn.close()
+        menu = Menu(
+            ID_RESTAURANTE=restaurant_id,
+            NOMBRE_PLATO=dish_name,
+            DESCRIPCION=description,
+            PRECIO=price,
+            RUTAFOTOMENU=photo_url,
+            DISPONIBLE=True
+        )
+        db.session.add(menu)
+        db.session.commit()
+        logger.info(f"Menu item created: {dish_name} for restaurant {restaurant_id}")
 
     @staticmethod
     def update_menu(
@@ -37,56 +44,40 @@ class OwnerModel:
         menu_id: int,
         dish_name: str,
         description: str,
-        price: float
+        price: float,
+        photo_url: Optional[str] = None
     ) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "EXEC sp_EditarMenu ?, ?, ?, ?, ?",
-                (executor_role, menu_id, dish_name, description, price)
-            )
-            conn.commit()
-            logger.info(f"Menu item {menu_id} updated successfully")
-        except Exception as error:
-            logger.error(f"Error updating menu item {menu_id}: {error}")
-            raise
-        finally:
-            conn.close()
+        menu = Menu.query.get(menu_id)
+        if not menu:
+            raise ValueError("Menu item not found")
+        menu.NOMBRE_PLATO = dish_name
+        menu.DESCRIPCION = description
+        menu.PRECIO = price
+        if photo_url:
+            menu.RUTAFOTOMENU = photo_url
+        db.session.commit()
+        logger.info(f"Menu item {menu_id} updated successfully")
 
     @staticmethod
     def delete_menu(executor_role: int, menu_id: int) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "EXEC sp_EliminarMenu ?, ?",
-                (executor_role, menu_id)
-            )
-            conn.commit()
-            logger.info(f"Menu item {menu_id} deleted successfully")
-        except Exception as error:
-            logger.error(f"Error deleting menu item {menu_id}: {error}")
-            raise
-        finally:
-            conn.close()
+        menu = Menu.query.get(menu_id)
+        if not menu:
+            raise ValueError("Menu item not found")
+        db.session.delete(menu)
+        db.session.commit()
+        logger.info(f"Menu item {menu_id} deleted successfully")
 
     @staticmethod
     def get_menus_by_owner(owner_id: int) -> List[Tuple]:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT m.ID_MENU, m.ID_RESTAURANTE, m.NOMBRE_PLATO, "
-                "m.DESCRIPCION, m.PRECIO, m.DISPONIBLE "
-                "FROM MENU m "
-                "JOIN RESTAURANTE r ON m.ID_RESTAURANTE = r.ID_RESTAURANTE "
-                "WHERE r.ID_DUENO = ?",
-                (owner_id,)
-            )
-            return cursor.fetchall()
-        finally:
-            conn.close()
+        results = (
+            db.session.query(Menu)
+            .join(Restaurante, Menu.ID_RESTAURANTE == Restaurante.ID_RESTAURANTE)
+            .filter(Restaurante.ID_DUENO == owner_id)
+            .all()
+        )
+        return [(
+            m.ID_MENU, m.ID_RESTAURANTE, m.NOMBRE_PLATO, m.DESCRIPCION, m.PRECIO, m.DISPONIBLE, m.RUTAFOTOMENU
+        ) for m in results]
 
     @staticmethod
     def create_promotion(
@@ -96,19 +87,13 @@ class OwnerModel:
         discount: float,
         validity_date: Optional[str] = None
     ) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO PROMOCIONES "
-                "(ID_RESTAURANTE, TITULO, DESCRIPCION, DESCUENTO, FECHA_VIGENCIA) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (restaurant_id, title, description, discount, validity_date)
-            )
-            conn.commit()
-            logger.info(f"Promotion created for restaurant {restaurant_id}: {title}")
-        except Exception as error:
-            logger.error(f"Error creating promotion for restaurant {restaurant_id}: {error}")
-            raise
-        finally:
-            conn.close()
+        promo = Promocion(
+            ID_RESTAURANTE=restaurant_id,
+            TITULO=title,
+            DESCRIPCION=description,
+            DESCUENTO=discount,
+            FECHA_VIGENCIA=validity_date
+        )
+        db.session.add(promo)
+        db.session.commit()
+        logger.info(f"Promotion created for restaurant {restaurant_id}: {title}")

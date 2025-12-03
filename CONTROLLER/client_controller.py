@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort, jsonify
 
 from SERVICES.client_service import ClientService
 from SERVICES.authentication_service import AuthenticationService
@@ -15,6 +15,32 @@ def require_client():
 
     if not AuthenticationService.is_client(session.get('user_role')):
         abort(403)
+
+
+# ============================================================================
+# READ - List all available menus for browsing
+# ============================================================================
+
+@client_bp.route('/menus')
+def menus():
+    try:
+        menus_list = ClientService.get_all_menus()
+        return render_template('VIEW/client_menus.html', menus=menus_list)
+    except Exception as error:
+        flash(f"Error al cargar menús: {str(error)}")
+        return render_template('VIEW/client_menus.html', menus=[])
+
+
+@client_bp.route('/menus/detail/<int:menu_id>')
+def menu_detail(menu_id):
+    """API que retorna detalle de un menú en JSON."""
+    try:
+        menu = ClientService.get_menu_detail(menu_id)
+        if not menu:
+            return jsonify({'error': 'Menú no encontrado'}), 404
+        return jsonify(menu)
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500
 
 
 # ============================================================================

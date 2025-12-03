@@ -2,9 +2,8 @@ venv/
 .venv/
 __pycache__/
 *.pyc
-env/
-ENV/
 /.vscode/
 instance/
 *.sqlite3
 *.db
+#.env local environment file

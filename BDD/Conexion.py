@@ -1,31 +1,37 @@
 import logging
-import pyodbc
+from sqlalchemy import create_engine
+from urllib.parse import quote_plus
 
 logger = logging.getLogger(__name__)
 
 
 def get_connection():
+    """Return a SQLAlchemy connection. This keeps compatibility for code
+    that previously used `get_connection()`. Prefer using `db.session`
+    (Flask-SQLAlchemy) in the application code.
+    """
     try:
-        from config import Config
+        from config import get_config
 
-        connection_string = (
-            f"DRIVER={{{Config.DB_DRIVER}}};"
-            f"SERVER={Config.DB_SERVER};"
-            f"DATABASE={Config.DB_NAME};"
-            f"UID={Config.DB_USER};"
-            f"PWD={Config.DB_PASSWORD};"
-            f"Encrypt={'yes' if Config.DB_ENCRYPT else 'no'};"
-            f"TrustServerCertificate={'yes' if Config.DB_TRUST_CERTIFICATE else 'no'};"
-            f"Connection Timeout={Config.DB_TIMEOUT};"
+        cfg = get_config()
+
+        params = (
+            f"DRIVER={{{cfg.DB_DRIVER}}};"
+            f"SERVER={cfg.DB_SERVER};"
+            f"DATABASE={cfg.DB_NAME};"
+            f"UID={cfg.DB_USER};"
+            f"PWD={cfg.DB_PASSWORD};"
+            f"Encrypt={'yes' if cfg.DB_ENCRYPT else 'no'};"
+            f"TrustServerCertificate={'yes' if cfg.DB_TRUST_CERTIFICATE else 'no'};"
+            f"Connection Timeout={cfg.DB_TIMEOUT};"
         )
 
-        connection = pyodbc.connect(connection_string)
-        logger.info("Successfully connected to Azure SQL Server")
+        uri = f"mssql+pyodbc:///?odbc_connect={quote_plus(params)}"
+        engine = create_engine(uri)
+        connection = engine.connect()
+        logger.info("Successfully created SQLAlchemy connection to SQL Server")
         return connection
 
-    except pyodbc.Error as db_error:
-        logger.error(f"Database connection error: {db_error}")
-        raise
     except Exception as error:
         logger.error(f"Unexpected connection error: {error}")
         raise

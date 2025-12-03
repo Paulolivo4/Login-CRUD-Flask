@@ -37,8 +37,9 @@ def login_submit():
             return redirect(url_for('user_bp.dashboard'))
         elif AuthenticationService.is_owner(role):
             return redirect(url_for('owner_bp.menus'))
-        else:  
-            return redirect(url_for('client_bp.reservations'))
+        else:
+            # Para clientes, mostrar inmediatamente el listado de menús con fotos
+            return redirect(url_for('client_bp.menus'))
     else:
         flash(Config.ERROR_MESSAGES['invalid_credentials'])
         return redirect(url_for('login_bp.login'))

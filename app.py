@@ -12,6 +12,7 @@ from CONTROLLER.login_controller import login_bp
 from CONTROLLER.client_controller import client_bp
 from CONTROLLER.owner_controller import owner_bp
 from CONTROLLER.admin_controller import admin_bp
+from BDD.db import init_app as init_db, db
 
 
 logging.basicConfig(
@@ -27,6 +28,9 @@ def create_app():
 
     config = get_config()
     app.config.from_object(config)
+
+    # Initialize database (Flask-SQLAlchemy)
+    init_db(app)
 
     app.register_blueprint(user_bp)
     app.register_blueprint(login_bp)

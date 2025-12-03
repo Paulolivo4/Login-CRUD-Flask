@@ -22,16 +22,12 @@ class AdminService:
 
     @staticmethod
     def create_restaurant(
-        admin_email: str,
         owner_email: str,
         name: str,
         address: str,
         phone: str
     ) -> bool:
         
-        if not validate_email(admin_email):
-            raise ValueError("Invalid admin email format")
-
         if not validate_email(owner_email):
             raise ValueError("Invalid owner email format")
 
@@ -45,7 +41,7 @@ class AdminService:
             raise ValueError("Invalid phone format")
 
         try:
-            AdminRestaurantModel.create_restaurant(admin_email, owner_email, name, address, phone)
+            AdminRestaurantModel.create_restaurant(owner_email, name, address, phone)
             logger.info(f"Restaurant created: {name} for owner {owner_email}")
             return True
         except Exception as error:

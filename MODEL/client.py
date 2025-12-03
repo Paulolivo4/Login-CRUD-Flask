@@ -2,7 +2,8 @@ import logging
 from datetime import datetime
 from typing import Optional, List, Tuple
 
-from BDD.Conexion import get_connection
+from BDD.db import db
+from MODEL.models import Reserva
 
 logger = logging.getLogger(__name__)
 
@@ -17,51 +18,32 @@ class ClientModel:
         reservation_date: datetime,
         number_of_people: int
     ) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "EXEC sp_CrearReserva ?, ?, ?, ?, ?",
-                (executor_role, client_id, restaurant_id, reservation_date, number_of_people)
-            )
-            conn.commit()
-            logger.info(f"Reservation created for client {client_id} at restaurant {restaurant_id}")
-        except Exception as error:
-            logger.error(f"Error creating reservation: {error}")
-            raise
-        finally:
-            conn.close()
+        reserva = Reserva(
+            ID_CLIENTE=client_id,
+            ID_RESTAURANTE=restaurant_id,
+            FECHA_RESERVA=reservation_date,
+            CANTIDAD_PERSONAS=number_of_people,
+            ESTADO='CREADA'
+        )
+        db.session.add(reserva)
+        db.session.commit()
+        logger.info(f"Reservation created for client {client_id} at restaurant {restaurant_id}")
 
     @staticmethod
     def delete_reservation(executor_role: int, reservation_id: int) -> None:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "EXEC sp_EliminarReserva ?, ?",
-                (executor_role, reservation_id)
-            )
-            conn.commit()
-            logger.info(f"Reservation {reservation_id} deleted successfully")
-        except Exception as error:
-            logger.error(f"Error deleting reservation {reservation_id}: {error}")
-            raise
-        finally:
-            conn.close()
+        reserva = Reserva.query.get(reservation_id)
+        if not reserva:
+            raise ValueError("Reservation not found")
+        db.session.delete(reserva)
+        db.session.commit()
+        logger.info(f"Reservation {reservation_id} deleted successfully")
 
     @staticmethod
     def get_reservations_by_client(client_id: int) -> List[Tuple]:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT ID_RESERVA, ID_CLIENTE, ID_RESTAURANTE, FECHA_RESERVA, "
-                "CANTIDAD_PERSONAS, ESTADO FROM RESERVA WHERE ID_CLIENTE = ?",
-                (client_id,)
-            )
-            return cursor.fetchall()
-        finally:
-            conn.close()
+        results = Reserva.query.filter_by(ID_CLIENTE=client_id).all()
+        return [(
+            r.ID_RESERVA, r.ID_CLIENTE, r.ID_RESTAURANTE, r.FECHA_RESERVA, r.CANTIDAD_PERSONAS, r.ESTADO
+        ) for r in results]
 
     @staticmethod
     def update_reservation(
@@ -69,36 +51,13 @@ class ClientModel:
         reservation_date: Optional[datetime] = None,
         number_of_people: Optional[int] = None
     ) -> None:
-        if reservation_date is None and number_of_people is None:
-            logger.warning(f"No update fields provided for reservation {reservation_id}")
-            return
+        reserva = Reserva.query.get(reservation_id)
+        if not reserva:
+            raise ValueError("Reservation not found")
+        if reservation_date is not None:
+            reserva.FECHA_RESERVA = reservation_date
+        if number_of_people is not None:
+            reserva.CANTIDAD_PERSONAS = number_of_people
+        db.session.commit()
+        logger.info(f"Reservation {reservation_id} updated successfully")
 
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-
-            if reservation_date is not None and number_of_people is not None:
-                cursor.execute(
-                    "UPDATE RESERVA SET FECHA_RESERVA = ?, CANTIDAD_PERSONAS = ? "
-                    "WHERE ID_RESERVA = ?",
-                    (reservation_date, number_of_people, reservation_id)
-                )
-            elif reservation_date is not None:
-                cursor.execute(
-                    "UPDATE RESERVA SET FECHA_RESERVA = ? WHERE ID_RESERVA = ?",
-                    (reservation_date, reservation_id)
-                )
-            elif number_of_people is not None:
-                cursor.execute(
-                    "UPDATE RESERVA SET CANTIDAD_PERSONAS = ? WHERE ID_RESERVA = ?",
-                    (number_of_people, reservation_id)
-                )
-
-            conn.commit()
-            logger.info(f"Reservation {reservation_id} updated successfully")
-
-        except Exception as error:
-            logger.error(f"Error updating reservation {reservation_id}: {error}")
-            raise
-        finally:
-            conn.close()

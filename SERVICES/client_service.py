@@ -1,14 +1,71 @@
 import logging
 from datetime import datetime
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 
 from MODEL.client import ClientModel
+from MODEL.models import Menu, Restaurante
 from UTILS.validators import parse_integer
+from BDD.db import db
 
 logger = logging.getLogger(__name__)
 
 
 class ClientService:
+
+    @staticmethod
+    def get_all_menus() -> List[Dict[str, Any]]:
+        """Obtiene todos los menús disponibles con información del restaurante."""
+        try:
+            menus = db.session.query(Menu, Restaurante).join(
+                Restaurante, Menu.ID_RESTAURANTE == Restaurante.ID_RESTAURANTE
+            ).filter(Menu.DISPONIBLE == True, Restaurante.ESTADO == True).all()
+            
+            result = []
+            for menu, restaurante in menus:
+                result.append({
+                    'ID_MENU': menu.ID_MENU,
+                    'ID_RESTAURANTE': restaurante.ID_RESTAURANTE,
+                    'NOMBRE_PLATO': menu.NOMBRE_PLATO,
+                    'DESCRIPCION': menu.DESCRIPCION,
+                    'PRECIO': menu.PRECIO,
+                    'RUTAFOTOMENU': menu.RUTAFOTOMENU,
+                    'NOMBRE_RESTAURANTE': restaurante.NOMBRE,
+                    'DIRECCION': restaurante.DIRECCION,
+                    'TELEFONO': restaurante.TELEFONO,
+                    'RUTAFOTOLOGO': getattr(restaurante, 'RUTAFOTOLOGO', None),
+                })
+            
+            logger.info(f"Retrieved {len(result)} available menus")
+            return result
+        except Exception as error:
+            logger.error(f"Error retrieving menus: {error}")
+            raise
+
+    @staticmethod
+    def get_menu_detail(menu_id: int) -> Optional[Dict[str, Any]]:
+        """Obtiene detalle de un menú específico."""
+        try:
+            menu = Menu.query.get(menu_id)
+            if not menu:
+                return None
+            
+            restaurante = Restaurante.query.get(menu.ID_RESTAURANTE)
+            
+            return {
+                'ID_MENU': menu.ID_MENU,
+                'ID_RESTAURANTE': restaurante.ID_RESTAURANTE,
+                'NOMBRE_PLATO': menu.NOMBRE_PLATO,
+                'DESCRIPCION': menu.DESCRIPCION,
+                'PRECIO': menu.PRECIO,
+                'RUTAFOTOMENU': menu.RUTAFOTOMENU,
+                'NOMBRE_RESTAURANTE': restaurante.NOMBRE,
+                'DIRECCION': restaurante.DIRECCION,
+                'TELEFONO': restaurante.TELEFONO,
+                'RUTAFOTOLOGO': getattr(restaurante, 'RUTAFOTOLOGO', None),
+            }
+        except Exception as error:
+            logger.error(f"Error retrieving menu detail: {error}")
+            raise
 
     @staticmethod
     def get_reservations(client_id: int) -> List[Tuple]:

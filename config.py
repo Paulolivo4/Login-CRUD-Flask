@@ -1,5 +1,6 @@
 import os
 from typing import Dict
+from urllib.parse import quote_plus
 
 
 class Config:
@@ -22,7 +23,7 @@ class Config:
     DB_USER = os.environ.get('DB_USER', 'adminsql')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chispo11')
     DB_ENCRYPT = True
-    DB_TRUST_CERTIFICATE = False
+    DB_TRUST_CERTIFICATE = True  # Changed to True for Azure SQL Server
     DB_TIMEOUT = 30
 
     # Role IDs
@@ -105,4 +106,22 @@ def get_config() -> Config:
     elif env == 'testing':
         return TestingConfig()
     else:
-        return DevelopmentConfig()
+        cfg = DevelopmentConfig()
+
+    # Build SQLALCHEMY_DATABASE_URI using pyodbc via the odbc_connect param.
+    # Use quote_plus to properly encode the ODBC connection string.
+    params = (
+        f"DRIVER={{{cfg.DB_DRIVER}}};"
+        f"SERVER={cfg.DB_SERVER};"
+        f"DATABASE={cfg.DB_NAME};"
+        f"UID={cfg.DB_USER};"
+        f"PWD={cfg.DB_PASSWORD};"
+        f"Encrypt={'yes' if cfg.DB_ENCRYPT else 'no'};"
+        f"TrustServerCertificate={'yes' if cfg.DB_TRUST_CERTIFICATE else 'no'};"
+        f"Connection Timeout={cfg.DB_TIMEOUT};"
+    )
+
+    cfg.SQLALCHEMY_DATABASE_URI = f"mssql+pyodbc:///?odbc_connect={quote_plus(params)}"
+    cfg.SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    return cfg
