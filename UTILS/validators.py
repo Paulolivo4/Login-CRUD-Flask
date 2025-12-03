@@ -54,8 +54,10 @@ def parse_datetime(datetime_str: str) -> Tuple[bool, Optional[datetime]]:
 
 
 def parse_integer(value: Optional[str], default: Optional[int] = None) -> Optional[int]:
-    
-    if not value:
+    # Consider only None or empty string as missing value.
+    # Do not treat '0' (or other numeric strings) as missing because
+    # they are falsy in Python.
+    if value is None or (isinstance(value, str) and value.strip() == ''):
         return default
 
     try:
@@ -65,8 +67,8 @@ def parse_integer(value: Optional[str], default: Optional[int] = None) -> Option
 
 
 def parse_float(value: Optional[str], default: Optional[float] = None) -> Optional[float]:
-    
-    if not value:
+    # Consider only None or empty string as missing value.
+    if value is None or (isinstance(value, str) and value.strip() == ''):
         return default
 
     try:

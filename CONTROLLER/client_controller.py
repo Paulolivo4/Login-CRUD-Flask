@@ -53,10 +53,11 @@ def reservations():
 
     try:
         reservations_list = ClientService.get_reservations(client_id)
-        return render_template('VIEW/client_reservations.html', reservas=reservations_list)
+        restaurants_list = ClientService.get_available_restaurants()
+        return render_template('VIEW/client_reservations.html', reservas=reservations_list, restaurants=restaurants_list)
     except Exception as error:
         flash(f"Error al cargar reservas: {str(error)}")
-        return render_template('VIEW/client_reservations.html', reservas=[])
+        return render_template('VIEW/client_reservations.html', reservas=[], restaurants=[])
 
 
 # ============================================================================

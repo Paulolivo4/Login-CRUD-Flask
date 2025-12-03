@@ -369,7 +369,7 @@
                             <div class="restaurant-name">{{ menu.NOMBRE_RESTAURANTE }}</div>
                             <div class="dish-name">{{ menu.NOMBRE_PLATO }}</div>
                             <div class="dish-price">${{ "%.2f"|format(menu.PRECIO) }}</div>
-                            <button class="btn-ver-mas" data-menu='{{ menu | tojson | safe }}' onclick="openMenuModalFromButton(this)">Ver Más</button>
+                            <button class="btn-ver-mas" data-menu='{{ menu | tojson | safe }}' data-restaurant-id="{{ menu.ID_RESTAURANTE }}" onclick="openMenuModalFromButton(this)">Ver Más</button>
                         </div>
                     </div>
                 {% endfor %}
@@ -458,7 +458,9 @@
                 modalImage.style.display = 'none';
             }
 
-            document.getElementById('restaurantId').value = menu.ID_RESTAURANTE || '';
+            // Ensure we set the restaurant hidden field even if ID is 0 or falsy.
+            const rid = (menu && (menu.ID_RESTAURANTE !== undefined && menu.ID_RESTAURANTE !== null)) ? menu.ID_RESTAURANTE : '';
+            document.getElementById('restaurantId').value = rid === '' ? '' : String(rid);
             // focus en el botón cerrar para accesibilidad
             const closeBtn = modal.querySelector('.close');
             if (closeBtn) closeBtn.focus();
@@ -487,13 +489,27 @@
         });
 
         function openMenuModalFromButton(btn) {
+            let menu = {};
             try {
                 const json = btn.getAttribute('data-menu');
-                const menu = JSON.parse(json);
-                openMenuModal(menu);
+                menu = JSON.parse(json) || {};
             } catch (e) {
                 console.error('Error parsing menu data:', e);
+                menu = {};
             }
+
+            // Fallback: if the parsed menu doesn't include the restaurant id,
+            // read it from a data attribute on the button (string -> int)
+            if (menu.ID_RESTAURANTE === undefined || menu.ID_RESTAURANTE === null || menu.ID_RESTAURANTE === '') {
+                const rid = btn.dataset.restaurantId;
+                if (rid !== undefined) {
+                    // try convert to number, but leave as string if NaN
+                    const parsed = parseInt(rid, 10);
+                    menu.ID_RESTAURANTE = isNaN(parsed) ? rid : parsed;
+                }
+            }
+
+            openMenuModal(menu);
         }
     </script>
 </body>

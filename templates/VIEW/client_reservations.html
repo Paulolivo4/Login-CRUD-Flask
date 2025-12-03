@@ -20,6 +20,7 @@
         </p>
       {% endif %}
 
+      <a class="btn-logout" href="{{ url_for('client_bp.menus') }}" style="margin-right:10px;">Volver a Menús</a>
       <a class="btn-logout" href="{{ url_for('login_bp.logout') }}">Cerrar sesión</a>
     </div>
 
@@ -38,7 +39,17 @@
       <h2>Crear reserva</h2>
 
       <form class="form" action="{{ url_for('client_bp.create_reservation') }}" method="post">
-        <input class="input" type="number" name="id_restaurante" placeholder="ID Restaurante" required>
+        {% if restaurants %}
+          <label for="id_restaurante">Selecciona Restaurante</label>
+          <select class="input" id="id_restaurante" name="id_restaurante" required>
+            <option value="">-- Selecciona un restaurante --</option>
+            {% for r in restaurants %}
+              <option value="{{ r.ID_RESTAURANTE }}">{{ r.NOMBRE }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input class="input" type="text" value="No hay restaurantes disponibles" disabled>
+        {% endif %}
         <input class="input" type="datetime-local" name="fecha" required>
         <input class="input" type="number" name="personas" placeholder="Personas" required>
         <button class="btn" type="submit">Reservar</button>

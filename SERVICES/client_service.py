@@ -79,6 +79,20 @@ class ClientService:
             raise
 
     @staticmethod
+    def get_available_restaurants() -> List[dict]:
+        """Return a list of active restaurants as dicts with id and name."""
+        try:
+            restos = Restaurante.query.filter_by(ESTADO=True).all()
+            result = []
+            for r in restos:
+                result.append({'ID_RESTAURANTE': r.ID_RESTAURANTE, 'NOMBRE': r.NOMBRE})
+            logger.info(f"Retrieved {len(result)} active restaurants")
+            return result
+        except Exception as error:
+            logger.error(f"Error retrieving restaurants: {error}")
+            raise
+
+    @staticmethod
     def create_reservation(
         client_id: int,
         restaurant_id: int,
