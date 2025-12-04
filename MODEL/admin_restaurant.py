@@ -64,3 +64,7 @@ class AdminRestaurantModel:
         return [(
             r.ID_RESTAURANTE, r.ID_DUENO, r.NOMBRE, r.DIRECCION, r.TELEFONO, r.ESTADO, r.FECHA_CREACION
         ) for r in results]
+    
+
+
+

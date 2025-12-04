@@ -70,7 +70,10 @@ def create_reservation():
 
     # Parse and validate restaurant ID
     restaurant_id = parse_integer(request.form.get('id_restaurante'))
-    if not restaurant_id:
+    if restaurant_id is None:
+        # support both normal form and AJAX: return JSON if requested
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'ID de restaurante inválido'}), 400
         flash('ID de restaurante inválido')
         return redirect(url_for('client_bp.reservations'))
 
@@ -88,12 +91,20 @@ def create_reservation():
 
     try:
         ClientService.create_reservation(client_id, restaurant_id, reservation_date, number_of_people)
+        # If AJAX request, return JSON success message so frontend can stay on page
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True, 'message': Config.SUCCESS_MESSAGES['reservation_created']})
+
         flash(Config.SUCCESS_MESSAGES['reservation_created'])
         return redirect(url_for('client_bp.reservations'))
     except ValueError as error:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': str(error)}), 400
         flash(f'Error de validación: {str(error)}')
         return redirect(url_for('client_bp.reservations'))
     except Exception as error:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': f'Error al crear reserva: {str(error)}'}), 500
         flash(f"Error al crear reserva: {str(error)}")
         return redirect(url_for('client_bp.reservations'))
 

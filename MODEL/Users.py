@@ -10,9 +10,28 @@ logger = logging.getLogger(__name__)
 class User:
 
     @staticmethod
-    def get_all_users() -> List[Dict[str, Any]]:
+    def get_allusers() -> List[Dict[str, Any]]:
         users = LoginDetails.query.all()
         return [u.to_dict() for u in users]
+    
+    @staticmethod
+    def get_all_users() -> List[Dict[str, Any]]:
+        results = LoginDetails.query.all()
+        # Adapt to the actual LoginDetails model fields (NAME, LASTNAME, EMAIL, ROL_ID).
+        # Return a tuple shaped so the template can access: ID, Nombre, Apellido, Email, Rol, Estado(optional)
+        out = []
+        for r in results:
+            estado = getattr(r, 'ESTADO', None)
+            out.append((
+                r.ID,
+                getattr(r, 'NAME', None),
+                getattr(r, 'LASTNAME', None),
+                getattr(r, 'EMAIL', None),
+                getattr(r, 'ROL_ID', None),
+                estado,
+            ))
+        return out
+
 
     @staticmethod
     def create_user(

@@ -435,6 +435,40 @@
     </div>
 
     <script>
+        // Attach AJAX submit handler to the reservation form inside the modal
+        (function(){
+            const form = document.getElementById('reservationForm');
+            if (!form) return;
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const restIdInput = document.getElementById('restaurantId');
+                const restId = restIdInput ? restIdInput.value : '';
+                console.log('Submitting reservation with restaurant ID:', restId);
+                
+                const url = form.action;
+                const data = new FormData(form);
+                try {
+                    const resp = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: data });
+                    const json = await resp.json().catch(()=>null);
+                    console.log('Response:', resp.status, json);
+                    if (resp.ok && json && json.success) {
+                        // close modal and show alert
+                        closeMenuModal();
+                        alert(json.message || 'Reserva creada');
+                        // reset form fields
+                        form.querySelector('input[name="fecha"]').value = '';
+                        form.querySelector('input[name="personas"]').value = '';
+                    } else {
+                        const msg = (json && json.message) ? json.message : ('Error: ' + resp.statusText);
+                        alert(msg);
+                    }
+                } catch (err) {
+                    console.error('Request error:', err);
+                    alert('Error al conectar con el servidor');
+                }
+            });
+        })();
+
         function openMenuModal(menu) {
             const modal = document.getElementById('menuModal');
             modal.style.display = 'block';
@@ -451,16 +485,20 @@
             }
 
             const modalImage = document.getElementById('modalImage');
-            if (menu.RUTAFOTOMENU) {
+            if (modalImage && menu.RUTAFOTOMENU) {
                 modalImage.src = menu.RUTAFOTOMENU;
                 modalImage.style.display = 'block';
-            } else {
+            } else if (modalImage) {
                 modalImage.style.display = 'none';
             }
 
             // Ensure we set the restaurant hidden field even if ID is 0 or falsy.
             const rid = (menu && (menu.ID_RESTAURANTE !== undefined && menu.ID_RESTAURANTE !== null)) ? menu.ID_RESTAURANTE : '';
-            document.getElementById('restaurantId').value = rid === '' ? '' : String(rid);
+            const restaurantIdInput = document.getElementById('restaurantId');
+            if (restaurantIdInput) {
+                restaurantIdInput.value = rid === '' ? '' : String(rid);
+                console.log('Modal opened with restaurant ID:', restaurantIdInput.value);
+            }
             // focus en el botón cerrar para accesibilidad
             const closeBtn = modal.querySelector('.close');
             if (closeBtn) closeBtn.focus();
@@ -498,18 +536,15 @@
                 menu = {};
             }
 
-            // Fallback: if the parsed menu doesn't include the restaurant id,
-            // read it from a data attribute on the button (string -> int)
-            if (menu.ID_RESTAURANTE === undefined || menu.ID_RESTAURANTE === null || menu.ID_RESTAURANTE === '') {
+                // Prefer the explicit data attribute on the card button for restaurant id
+                // (this ensures we always use the id shown on the card).
                 const rid = btn.dataset.restaurantId;
-                if (rid !== undefined) {
-                    // try convert to number, but leave as string if NaN
+                if (rid !== undefined && rid !== null && String(rid).trim() !== '') {
                     const parsed = parseInt(rid, 10);
                     menu.ID_RESTAURANTE = isNaN(parsed) ? rid : parsed;
                 }
-            }
 
-            openMenuModal(menu);
+                openMenuModal(menu);
         }
     </script>
 </body>

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 
 from SERVICES.admin_service import AdminService
 from SERVICES.authentication_service import AuthenticationService
+from SERVICES.user_service import UserService
 from config import Config
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/admin')
@@ -56,3 +57,16 @@ def create_restaurant():
     except Exception as error:
         flash(f"Error al crear restaurante: {str(error)}")
         return redirect(url_for('admin_bp.restaurants'))
+
+# ============================================================================
+# READ - List all users
+# ============================================================================
+
+@admin_bp.route('/users')
+def user():
+    try:
+        users_list = UserService.get_all_users()
+        return render_template('VIEW/admin_dashboard.html', usuarios=users_list)
+    except Exception as error:
+        flash(f"Error al cargar usuarios: {str(error)}")
+        return render_template('VIEW/admin_dashboard.html', usuarios=[])
