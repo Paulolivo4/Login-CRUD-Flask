@@ -1,37 +1,42 @@
-# Imagen base de Python
 FROM python:3.11-slim
 
-# Instalar dependencias del sistema y ODBC Driver 18
+# Evitar preguntas interactivas
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instalar dependencias del sistema necesarias para ODBC
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     unixodbc \
     unixodbc-dev \
-    apt-transport-https \
-    software-properties-common
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Importar la clave y repositorio oficial de Microsoft
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-RUN curl https://packages.microsoft.com/config/debian/12/prod.list \
+# Agregar la clave de Microsoft
+RUN curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+
+# Agregar repo oficial de Microsoft para Debian 12 (bookworm)
+RUN curl -s https://packages.microsoft.com/config/debian/12/prod.list \
     -o /etc/apt/sources.list.d/mssql-release.list
 
-# Instalar el driver ODBC 18
-RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18
+# Instalar driver ODBC 18
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Crear carpeta de la app
 WORKDIR /app
 
-# Copiar requirements.txt
+# Copiar requerimientos
 COPY requirements.txt .
 
 # Instalar dependencias Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el resto del proyecto
-COPY . . 
+# Copiar el resto de la app
+COPY . .
 
-# Puerto por defecto de Render
+# Puerto default para Render
 EXPOSE 10000
 
-# Comando para ejecutar Flask con gunicorn
+# Comando de inicio
 CMD gunicorn app:app --bind 0.0.0.0:10000
