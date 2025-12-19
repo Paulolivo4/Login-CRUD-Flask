@@ -23,7 +23,7 @@ class Config:
     DB_USER = os.environ.get('DB_USER', 'adminsql')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chispo11')
     DB_ENCRYPT = True
-    DB_TRUST_CERTIFICATE = True  # Changed to True for Azure SQL Server
+    DB_TRUST_CERTIFICATE = False  # Changed to True for Azure SQL Server
     DB_TIMEOUT = 30
 
     # Role IDs

@@ -89,10 +89,10 @@
                 <tbody>
                     {% for user in usuarios %}
                         <tr>
-                            <td>{{ user[0] }}</td>
-                            <td>{{ user[1] }}</td>
-                            <td>{{ user[2] }}</td>
-                            <td>{{ user[3] }}</td>
+                            <td>{{ user['ID'] if user.get('ID') is not none else user[0] }}</td>
+                            <td>{{ user['NAME'] if user.get('NAME') is not none else user[1] }}</td>
+                            <td>{{ user['LASTNAME'] if user.get('LASTNAME') is not none else user[2] }}</td>
+                            <td>{{ user['EMAIL'] if user.get('EMAIL') is not none else user[3] }}</td>
                         </tr>
                     {% else %}
                         <tr>

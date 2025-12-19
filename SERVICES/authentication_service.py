@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, Dict, Any
 
-from MODEL.Users import User
+from SERVICES.user_service import UserService
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -11,9 +11,8 @@ class AuthenticationService:
 
     @staticmethod
     def authenticate(email: str, password: str) -> Optional[Dict[str, Any]]:
-        
         try:
-            user = User.authenticate(email, password)
+            user = UserService.authenticate(email, password)
             if user:
                 logger.info(f"User authenticated: {email}")
             else:

@@ -13,6 +13,8 @@ from CONTROLLER.client_controller import client_bp
 from CONTROLLER.owner_controller import owner_bp
 from CONTROLLER.admin_controller import admin_bp
 from BDD.db import init_app as init_db, db
+from factories.repository_factory import RepositoryFactory
+from SERVICES.user_service import configure_user_repository
 
 
 logging.basicConfig(
@@ -31,6 +33,11 @@ def create_app():
 
     # Initialize database (Flask-SQLAlchemy)
     init_db(app)
+
+    # Configurar repositorios / inyección de dependencias (DIP)
+    # Por ahora usamos la implementación 'azure' a través de la fábrica.
+    user_repo = RepositoryFactory.get_user_repository('azure')
+    configure_user_repository(user_repo)
 
     app.register_blueprint(user_bp)
     app.register_blueprint(login_bp)
