@@ -1,5 +1,6 @@
 import logging
 import os
+from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for
 
@@ -27,6 +28,8 @@ logger = logging.getLogger(__name__)
 def create_app():
     
     app = Flask(__name__)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+
 
     config = get_config()
     app.config.from_object(config)
