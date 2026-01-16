@@ -40,5 +40,4 @@ COPY . .
 EXPOSE 10000
 
 # Comando de inicio (cámbialo si tu app se llama distinto)
-CMD ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:10000"]
-
+CMD gunicorn wsgi:app --bind 0.0.0.0:$PORT
