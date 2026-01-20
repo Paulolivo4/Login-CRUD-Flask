@@ -1,49 +1,21 @@
-import logging
-from typing import List, Tuple
-
-from MODEL.admin_restaurant import AdminRestaurantModel
-from UTILS.validators import validate_email, validate_phone
-
-logger = logging.getLogger(__name__)
-
+# Importamos la clase que acabamos de crear
+from repositories.azure_admin_repository import AzureAdminRepository
 
 class AdminService:
+    # Instanciamos el repositorio
+    _admin_repo = AzureAdminRepository()
 
     @staticmethod
-    def get_all_restaurants() -> List[Tuple]:
-        
-        try:
-            restaurants = AdminRestaurantModel.get_all_restaurants()
-            logger.info("Retrieved all restaurants")
-            return restaurants
-        except Exception as error:
-            logger.error(f"Error retrieving restaurants: {error}")
-            raise
+    def get_all_restaurants():
+        return AdminService._admin_repo.get_all_restaurants()
 
     @staticmethod
-    def create_restaurant(
-        owner_email: str,
-        name: str,
-        address: str,
-        phone: str
-    ) -> bool:
-        
-        if not validate_email(owner_email):
-            raise ValueError("Invalid owner email format")
+    def create_restaurant(owner_id, name, address, phone, opening_time, closing_time, logo_url):
+        # Validaciones básicas
+        if not all([owner_id, name, address, phone]):
+            raise ValueError("Faltan datos requeridos para crear el restaurante")
 
-        if not name or len(name.strip()) == 0:
-            raise ValueError("Restaurant name is required")
-
-        if not address or len(address.strip()) == 0:
-            raise ValueError("Address is required")
-
-        if not validate_phone(phone):
-            raise ValueError("Invalid phone format")
-
-        try:
-            AdminRestaurantModel.create_restaurant(owner_email, name, address, phone)
-            logger.info(f"Restaurant created: {name} for owner {owner_email}")
-            return True
-        except Exception as error:
-            logger.error(f"Error creating restaurant {name}: {error}")
-            raise
+        # Pasamos los 7 datos al repositorio
+        return AdminService._admin_repo.create_restaurant(
+            owner_id, name, address, phone, opening_time, closing_time, logo_url
+        )

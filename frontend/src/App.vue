@@ -1,7 +1,11 @@
 <script setup>
-import Login from './components/Login.vue'
+// Ya no importamos Login directamente, el router se encarga
 </script>
 
 <template>
-  <Login />
+  <router-view></router-view>
 </template>
+
+<style>
+/* Estilos globales extra si necesitas */
+</style>

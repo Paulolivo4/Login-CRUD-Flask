@@ -1,81 +1,21 @@
-import logging
-from typing import Optional, Dict, Any, List
+class Users:
+    """
+    Clase Entidad que representa a un Usuario en el sistema.
+    Se usa para transportar datos entre el Servicio y el Repositorio.
+    """
+    def __init__(self, id, name, lastname, email, password, role_id):
+        self.id = id
+        self.name = name
+        self.lastname = lastname
+        self.email = email
+        self.password = password
+        self.role_id = role_id
 
-from BDD.db import db
-from MODEL.models import LoginDetails
-
-logger = logging.getLogger(__name__)
-
-
-class User:
-
-    @staticmethod
-    def get_allusers() -> List[Dict[str, Any]]:
-        users = LoginDetails.query.all()
-        return [u.to_dict() for u in users]
-    
-    @staticmethod
-    def get_all_users() -> List[Dict[str, Any]]:
-        results = LoginDetails.query.all()
-        # Adapt to the actual LoginDetails model fields (NAME, LASTNAME, EMAIL, ROL_ID).
-        # Return a tuple shaped so the template can access: ID, Nombre, Apellido, Email, Rol, Estado(optional)
-        out = []
-        for r in results:
-            estado = getattr(r, 'ESTADO', None)
-            out.append((
-                r.ID,
-                getattr(r, 'NAME', None),
-                getattr(r, 'LASTNAME', None),
-                getattr(r, 'EMAIL', None),
-                getattr(r, 'ROL_ID', None),
-                estado,
-            ))
-        return out
-
-
-    @staticmethod
-    def create_user(
-        name: str,
-        lastname: str,
-        email: str,
-        password: str,
-        role_id: int = 3
-    ) -> None:
-        user = LoginDetails(
-            NAME=name,
-            LASTNAME=lastname,
-            EMAIL=email,
-            PASSWORD=password,
-            ROL_ID=role_id
-        )
-        db.session.add(user)
-        db.session.commit()
-        logger.info(f"User created successfully: {email}")
-
-    @staticmethod
-    def delete_user(email: str) -> None:
-        user = LoginDetails.query.filter_by(EMAIL=email).first()
-        if user:
-            db.session.delete(user)
-            db.session.commit()
-            logger.info(f"User deleted successfully: {email}")
-        else:
-            logger.warning(f"User to delete not found: {email}")
-
-    @staticmethod
-    def update_password(email: str, password: str) -> None:
-        user = LoginDetails.query.filter_by(EMAIL=email).first()
-        if not user:
-            raise ValueError("Usuario no encontrado")
-        user.PASSWORD = password
-        db.session.commit()
-        logger.info(f"Password updated for user: {email}")
-
-    @staticmethod
-    def authenticate(email: str, password: str) -> Optional[Dict[str, Any]]:
-        user = LoginDetails.query.filter_by(EMAIL=email, PASSWORD=password).first()
-        if user:
-            logger.info(f"User authenticated: {email}")
-            return user.to_dict()
-        logger.warning(f"Authentication failed for user: {email}")
-        return None
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'lastname': self.lastname,
+            'email': self.email,
+            'role_id': self.role_id
+        }

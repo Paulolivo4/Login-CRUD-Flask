@@ -1,0 +1,449 @@
+/*LOGIN*/
+/* Reset básico */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Fondo */
+body {
+  background: linear-gradient(to bottom right, #3b82f6, #1e40af);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor general */
+.container {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+}
+
+/* Tarjeta del login */
+.card {
+  background: #fff;
+  padding: 30px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* Título */
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #1e3a8a;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: 0.2s;
+}
+
+.input:focus {
+  border-color: #1e40af;
+  box-shadow: 0 0 4px rgba(30, 64, 175, 0.4);
+  outline: none;
+}
+
+/* Botón */
+.btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #1e40af;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #1e3a8a;
+}
+
+/* Mensajes Flash */
+.alert {
+  background: #fde047;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  color: #5a3e00;
+  font-size: 14px;
+}
+
+/* Texto y enlaces */
+.text {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/*Admin Dashboard*/
+/* ========== DASHBOARD GENERAL ========== */
+
+.dashboard-container {
+  width: 95%;
+  max-width: 1000px;
+  background: #fff;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+}
+
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+
+.dashboard-header h1 {
+  color: #1e3a8a;
+  margin-bottom: 10px;
+}
+
+.welcome {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.email {
+  color: #1e40af;
+}
+
+/* Logout Button */
+.btn-logout {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #dc2626;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.btn-logout:hover {
+  background: #b91c1c;
+}
+
+/* Section Title */
+.section-title {
+  margin-bottom: 15px;
+  color: #1e3a8a;
+  font-size: 22px;
+}
+
+/* ========== TABLE STYLES ========== */
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.styled-table thead {
+  background: #1e40af;
+  color: white;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background: #f1f5f9;
+}
+
+.styled-table tbody tr:hover {
+  background: #e2e8f0;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #555;
+  font-weight: bold;
+}
+
+/* ========== BUTTONS ========== */
+
+.actions {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 12px 18px;
+  background: #1e40af;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1e3a8a;
+}
+
+/*Admin_create_restaurant*/
+/* Card para el formulario */
+.card {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 25px;
+}
+
+.card .input {
+  margin-top: 12px;
+}
+
+/* Botón de crear */
+.card .btn {
+  margin-top: 18px;
+}
+
+/* Espaciado en títulos de sección */
+.section-title {
+  margin-top: 25px;
+}
+
+/* Estilo para mensajes flash */
+.alert {
+  background: #fde047;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  color: #5a3e00;
+  border-left: 5px solid #facc15;
+}
+
+/* client_dashboard */
+.card h2 {
+  margin-bottom: 10px;
+}
+
+.card p + p {
+  margin-top: 8px;
+}
+
+/* client_reservations */
+/* Flash messages */
+.flash-messages {
+  margin-bottom: 20px;
+}
+
+.flash {
+  background: #ffd27f;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #5a4100;
+  margin-bottom: 10px;
+  border-left: 4px solid #ffb84d;
+}
+
+/* Botón eliminar */
+.btn-delete {
+  background: #e74c3c;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+/* Index */
+.link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* Owner_dashboard */
+/* Owner_menus */
+.btn-delete {
+  background: #e74c3c;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+/* Register */
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.label {
+  display: block;
+  text-align: left;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.form-footer {
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Reset_password */
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0056b3;
+}
+
+.form-footer {
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.flash {
+  background: #e7ffe7;
+  padding: 10px;
+  border-left: 4px solid #28a745;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+/* ERROR 403 */
+.error-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 80px auto;
+  padding: 40px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.error-title {
+  font-size: 4rem;
+  margin: 0;
+  font-weight: bold;
+  color: #dc3545;
+}
+
+.error-subtitle {
+  font-size: 1.5rem;
+  margin-top: 10px;
+  color: #444;
+}
+
+.error-text {
+  margin: 20px 0 30px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  background: #007bff;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn:hover {
+  background: #0056b3;
+}
+
+
+
