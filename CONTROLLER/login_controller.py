@@ -10,10 +10,10 @@ login_bp = Blueprint('login_bp', __name__)
 repo = AzureUserRepository()
 
 # ==========================================
-# API PÚBLICA (SOLO JSON)
+# API PÚBLICA (QUITAMOS EL /API MANUAL)
 # ==========================================
 
-@login_bp.route('/api/register', methods=['POST'])
+@login_bp.route('/register', methods=['POST']) # <--- Sin /api
 def api_user_register():
     data = request.json
     email = data.get('email')
@@ -35,7 +35,7 @@ def api_user_register():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@login_bp.route('/api/forgot-password', methods=['POST'])
+@login_bp.route('/forgot-password', methods=['POST']) # <--- Sin /api
 def api_forgot_password():
     email = request.json.get('email')
     user = repo.get_user_by_email(email)
@@ -44,14 +44,13 @@ def api_forgot_password():
         return jsonify({'error': 'No existe un usuario con ese correo'}), 404
 
     reset_code = str(random.randint(100000, 999999))
-    # Asegúrate que EmailService maneje excepciones internamente o aquí
     try:
         EmailService.send_password_reset(email, user.NAME, reset_code)
         return jsonify({'message': 'Código de recuperación enviado'}), 200
     except Exception as e:
         return jsonify({'error': 'Error enviando correo'}), 500
 
-@login_bp.route('/api/reset-password', methods=['POST'])
+@login_bp.route('/reset-password', methods=['POST']) # <--- Sin /api
 def api_reset_password():
     data = request.json
     email = data.get('email')
@@ -72,7 +71,7 @@ def api_reset_password():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@login_bp.route('/api/login', methods=['POST'])
+@login_bp.route('/login', methods=['POST']) # <--- Sin /api
 def login_api():
     data = request.get_json()
     if not data:
@@ -90,7 +89,6 @@ def login_api():
         session_data = AuthenticationService.extract_session_data(user, email)
         session.update(session_data)
         
-        # Patrón DTO implícito: Devolvemos solo lo que el front necesita
         return jsonify({
             'message': Config.SUCCESS_MESSAGES.get('login_success', 'Bienvenido'),
             'user': {
@@ -102,7 +100,7 @@ def login_api():
     else:
         return jsonify({'error': Config.ERROR_MESSAGES.get('invalid_credentials', 'Credenciales incorrectas')}), 401
 
-@login_bp.route('/api/check_session', methods=['GET'])
+@login_bp.route('/check_session', methods=['GET']) # <--- Sin /api
 def check_session_api():
     user_id = session.get('user_id')
     if user_id:
@@ -116,7 +114,7 @@ def check_session_api():
         }), 200
     return jsonify({'authenticated': False}), 401
 
-@login_bp.route('/api/logout', methods=['POST'])
+@login_bp.route('/logout', methods=['POST']) # <--- Sin /api
 def logout_api():
     session.clear() 
     return jsonify({'message': 'Sesión cerrada correctamente'}), 200
