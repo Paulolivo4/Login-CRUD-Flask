@@ -52,6 +52,14 @@ class AzureUserRepository(UserRepository):
     def get_user_by_email(self, email: str):
         return LoginDetails.query.filter_by(EMAIL=email).first()
 
+    def get_user_by_id(self, user_id: int):
+        """Obtiene un usuario por su ID"""
+        try:
+            return LoginDetails.query.filter_by(ID=user_id).first()
+        except Exception as e:
+            logger.error(f"Error getting user by ID {user_id}: {e}")
+            return None
+
     def update_user(self, user_id, name, lastname, email, role_id):
         try:
             user = LoginDetails.query.filter_by(ID=user_id).first()

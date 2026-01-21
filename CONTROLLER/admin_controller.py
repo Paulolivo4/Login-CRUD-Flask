@@ -17,11 +17,11 @@ def get_all_users():
     try:
         users = AdminService.get_all_users()
         users_list = [{
-            'id': u.ID_USUARIO,
-            'name': u.NOMBRE,
-            'lastname': u.APELLIDO,
-            'email': u.CORREO,
-            'role_id': u.ID_ROL
+            'id': u.ID if hasattr(u, 'ID') else u.get('ID'),
+            'name': u.NAME if hasattr(u, 'NAME') else u.get('NAME'),
+            'lastname': u.LASTNAME if hasattr(u, 'LASTNAME') else u.get('LASTNAME'),
+            'email': u.EMAIL if hasattr(u, 'EMAIL') else u.get('EMAIL'),
+            'role_id': u.ROL_ID if hasattr(u, 'ROL_ID') else u.get('ROL_ID')
         } for u in users]
         return jsonify(users_list), 200
     except Exception as e:
