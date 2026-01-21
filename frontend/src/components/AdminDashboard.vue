@@ -145,11 +145,11 @@ onMounted(async () => {
 const loadData = async () => {
   try {
     // 1. Cargar Usuarios para la tabla
-    const usersRes = await axios.get('/admin/users');
+    const usersRes = await axios.get('/api/admin/users');
     users.value = usersRes.data;
 
     // 2. Cargar Estadísticas para los gráficos y tarjetas
-    const statsRes = await axios.get('/admin/dashboard-data');
+    const statsRes = await axios.get('/api/admin/dashboard-data');
     const d = statsRes.data.users_distribution;
     
     stats.value = {
