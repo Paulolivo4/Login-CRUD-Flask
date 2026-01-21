@@ -7,6 +7,7 @@ client_bp = Blueprint('client_bp', __name__)
 @client_bp.route('/client/restaurants', methods=['GET'])
 def get_restaurants():
     try:
+        # Ahora el nombre coincide con el servicio
         restaurants = ClientService.get_all_restaurants()
         
         if not restaurants:
@@ -19,13 +20,14 @@ def get_restaurants():
                 'name': getattr(r, 'NOMBRE', 'Sin nombre'),
                 'address': getattr(r, 'DIRECCION', 'Sin dirección'),
                 'phone': getattr(r, 'TELEFONO', 'N/A'),
-                'image_url': getattr(r, 'IMAGEN_URL', None)
+                # Verifica si en tu modelo es RUTAFOTOLOGO o IMAGEN_URL
+                'image_url': getattr(r, 'RUTAFOTOLOGO', None) 
             })
         return jsonify(data), 200
     except Exception as e:
         print(f"DEBUG Error en get_restaurants: {str(e)}")
         return jsonify({'error': 'Error al cargar restaurantes', 'details': str(e)}), 500
-
+    
 @client_bp.route('/client/restaurant/<int:restaurant_id>/menus', methods=['GET'])
 def get_menus(restaurant_id):
     try:

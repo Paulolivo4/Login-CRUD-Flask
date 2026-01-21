@@ -159,3 +159,14 @@ class ClientService:
         except Exception as error:
             logger.error(f"Error deleting reservation {reservation_id}: {error}")
             raise
+    @staticmethod
+    def get_all_restaurants() -> List[Restaurante]:
+        """Obtiene la lista completa de objetos Restaurante activos."""
+        try:
+            # Traemos el objeto completo para tener acceso a todos sus campos
+            restos = Restaurante.query.filter_by(ESTADO=True).all()
+            logger.info(f"Retrieved {len(restos)} active restaurants")
+            return restos
+        except Exception as error:
+            logger.error(f"Error retrieving restaurants: {error}")
+            raise
