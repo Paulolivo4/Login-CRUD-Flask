@@ -1,12 +1,19 @@
 // frontend/src/main.js
 import { createApp } from 'vue'
-import { createPinia } from 'pinia' // Importar Pinia
-import './assets/styles.css' // <--- TU CSS ORIGINAL AQUI
+import { createPinia } from 'pinia'
+import axios from 'axios' // <--- Importamos axios
+import './assets/styles.css'
 import App from './App.vue'
-import router from './router' // Lo crearemos en el paso 5
+import router from './router'
 
 const app = createApp(App)
 
-app.use(createPinia()) // Usar Pinia
-app.use(router) // Usar Router (lo configuramos abajo)
-app.mount('#app')
+// --- CONFIGURACIÓN DE AXIOS (Hacer esto ANTES de montar la app) ---
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+axios.defaults.withCredentials = true; // <--- Importante ponerlo aquí
+// ------------------------------------------------------------------
+
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app') // <--- Esto siempre va al final
