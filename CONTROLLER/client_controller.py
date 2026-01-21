@@ -9,16 +9,28 @@ client_bp = Blueprint('client_bp', __name__)
 def get_restaurants():
     try:
         restaurants = ClientService.get_all_restaurants()
-        data = [{
-            'id': getattr(r, 'ID_RESTAURANTE', None),
-            'nombre': getattr(r, 'NOMBRE', 'Sin nombre'),
-            'direccion': getattr(r, 'DIRECCION', 'Sin dirección'),
-            'foto': getattr(r, 'RUTAFOTOLOGO', None),
-            'horario': '09:00 - 22:00'  # Default horario
-        } for r in restaurants]
+        if not restaurants:
+            return jsonify([]), 200
+            
+        data = []
+        for r in restaurants:
+            try:
+                resto_data = {
+                    'id': getattr(r, 'ID_RESTAURANTE', None),
+                    'nombre': getattr(r, 'NOMBRE', 'Sin nombre'),
+                    'direccion': getattr(r, 'DIRECCION', 'Sin dirección'),
+                    'foto': getattr(r, 'RUTAFOTOLOGO', None),
+                    'horario': '09:00 - 22:00'
+                }
+                data.append(resto_data)
+            except Exception as item_error:
+                print(f"Error procesando restaurante: {item_error}")
+                continue
+        
         return jsonify(data), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error en get_restaurants: {e}")
+        return jsonify({'error': str(e), 'type': type(e).__name__}), 500
         
 @client_bp.route('/client/restaurant/<int:restaurant_id>/menus', methods=['GET'])
 def get_menus(restaurant_id):

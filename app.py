@@ -14,25 +14,39 @@ def create_app():
 
     # 1. Configuración de CORS Blindada
     frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+    print(f"[CORS] Frontend URL permitida: {frontend_url}")
     
+    # Habilitar CORS para todas las rutas
     CORS(app, 
-     resources={r"/api/*": {
-         "origins": [frontend_url, "http://localhost:5173"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": True
-     }})
+         resources={r"/*": {
+             "origins": [frontend_url, "http://localhost:5173", "http://localhost:3000"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+             "allow_headers": ["Content-Type", "Authorization"],
+             "expose_headers": ["Content-Type"],
+             "supports_credentials": True,
+             "max_age": 3600
+         }})
 
-    # Manejo manual de Preflight (Peticiones OPTIONS)
+    # Manejo manual de Preflight (Peticiones OPTIONS) y headers en todas las respuestas
     @app.before_request
     def handle_options_request():
         if request.method == 'OPTIONS':
             res = make_response()
             res.headers['Access-Control-Allow-Origin'] = frontend_url
-            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
             res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
             res.headers['Access-Control-Allow-Credentials'] = 'true'
+            res.headers['Access-Control-Max-Age'] = '3600'
             return res
+    
+    # Agregar headers CORS a todas las respuestas
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers['Access-Control-Allow-Origin'] = frontend_url
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
 
     init_app(app)
 

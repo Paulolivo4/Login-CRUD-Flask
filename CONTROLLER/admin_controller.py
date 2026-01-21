@@ -49,16 +49,22 @@ def update_user(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500      
     
-@admin_bp.route('/admin/dashboard-data', methods=['GET']) # ELIMINADO EL /api INICIAL
+@admin_bp.route('/admin/dashboard-data', methods=['GET'])
 def dashboard_data_api():
     try:
         user_repo = AzureUserRepository()
         all_users = user_repo.get_all_users()
         all_restaurants = AdminService.get_all_restaurants()
 
-        admins = len([u for u in all_users if u.ID_ROL == 1])
-        owners = len([u for u in all_users if u.ID_ROL == 2])
-        clients = len([u for u in all_users if u.ID_ROL == 3])
+        # Manejar tanto objetos como diccionarios
+        def get_role_id(u):
+            if isinstance(u, dict):
+                return u.get('ROL_ID')
+            return getattr(u, 'ROL_ID', None)
+        
+        admins = len([u for u in all_users if get_role_id(u) == 1])
+        owners = len([u for u in all_users if get_role_id(u) == 2])
+        clients = len([u for u in all_users if get_role_id(u) == 3])
         
         data = {
             'users_distribution': {
