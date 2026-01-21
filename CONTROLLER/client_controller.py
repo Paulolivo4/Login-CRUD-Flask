@@ -4,12 +4,11 @@ from UTILS.decorators import role_required
 
 client_bp = Blueprint('client_bp', __name__)
 
-@client_bp.route('/api/client/restaurants', methods=['GET'])
+# QUITAMOS el /api porque ya lo pone el app.py
+@client_bp.route('/client/restaurants', methods=['GET'])
 def get_restaurants():
     try:
-        # Ahora el nombre coincide con el servicio
         restaurants = ClientService.get_all_restaurants()
-        
         if not restaurants:
             return jsonify([]), 200
 
@@ -20,12 +19,10 @@ def get_restaurants():
                 'name': getattr(r, 'NOMBRE', 'Sin nombre'),
                 'address': getattr(r, 'DIRECCION', 'Sin dirección'),
                 'phone': getattr(r, 'TELEFONO', 'N/A'),
-                # Verifica si en tu modelo es RUTAFOTOLOGO o IMAGEN_URL
                 'image_url': getattr(r, 'RUTAFOTOLOGO', None) 
             })
         return jsonify(data), 200
     except Exception as e:
-        print(f"DEBUG Error en get_restaurants: {str(e)}")
         return jsonify({'error': 'Error al cargar restaurantes', 'details': str(e)}), 500
     
 @client_bp.route('/client/restaurant/<int:restaurant_id>/menus', methods=['GET'])
@@ -44,7 +41,6 @@ def get_menus(restaurant_id):
         } for m in menus]
         return jsonify(data), 200
     except Exception as e:
-        print(f"DEBUG Error en get_menus: {str(e)}")
         return jsonify({'error': 'Error al cargar menú', 'details': str(e)}), 500
 
 @client_bp.route('/client/reserve', methods=['POST'])
@@ -52,7 +48,6 @@ def get_menus(restaurant_id):
 def create_reservation():
     data = request.json
     user_id = session.get('user_id')
-    
     try:
         ClientService.create_reservation(
             user_id=user_id,
@@ -63,4 +58,4 @@ def create_reservation():
         )
         return jsonify({'message': 'Reserva creada con éxito'}), 201
     except Exception as e:
-        return jsonify({'error': 'No se pudo crear la reserva', 'details': str(e)}), 500
+        return jsonify({'error': 'No pudo crearse', 'details': str(e)}), 500

@@ -13,8 +13,8 @@ def create_app():
     app.config.from_object(config)
 
     # 1. Configuración de CORS
-    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
-    print(f"--> Configurando CORS para aceptar origen: {frontend_url}")
+    # Limpiamos la URL por si acaso tenga espacios o barras finales
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
     
     CORS(app, 
          resources={r"/api/*": {"origins": frontend_url}}, 
@@ -22,31 +22,31 @@ def create_app():
 
     init_app(app)
 
-    # 2. Inyección de Dependencias
     with app.app_context():
         try:
             user_repo = AzureUserRepository()
             configure_user_repository(user_repo)
-            print("--> Conexión a Base de Datos y Servicios OK.")
+            print("--> Conexión a Base de Datos OK.")
         except Exception as e:
-            print(f"--> ERROR en configuración BD: {e}")
+            print(f"--> ERROR BD: {e}")
 
-    # 3. Registro de Blueprints con PREFIJO /api
-    # Esto asegura que todas las rutas empiecen por https://tudominio.com/api/...
+    # 3. Registro de Blueprints con PREFIJO CENTRALIZADO
     from CONTROLLER.login_controller import login_bp
     from CONTROLLER.user_bp import user_bp
     from CONTROLLER.admin_controller import admin_bp
     from CONTROLLER.owner_controller import owner_bp 
     from CONTROLLER.client_controller import client_bp
 
-    app.register_blueprint(login_bp)
-    app.register_blueprint(user_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(owner_bp)
-    app.register_blueprint(client_bp)
+    # Al poner /api aquí, todas las rutas de estos archivos DEBEN quitar el /api interno
+    app.register_blueprint(login_bp, url_prefix='/api')
+    app.register_blueprint(user_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api')
+    app.register_blueprint(owner_bp, url_prefix='/api')
+    app.register_blueprint(client_bp, url_prefix='/api')
+
     @app.errorhandler(500)
     def internal_error(error):
-        return jsonify({'error': 'Error interno del servidor', 'details': str(error)}), 500
+        return jsonify({'error': 'Error interno', 'details': str(error)}), 500
 
     @app.errorhandler(404)
     def not_found(error):
@@ -56,4 +56,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
