@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # RUTAS DE ADMINISTRACIÓN (Limpio de /api)
 # ==========================================
 
-@admin_bp.route('/api/admin/users', methods=['GET']) # Quité /api
+@admin_bp.route('/admin/users', methods=['GET']) # ELIMINADO EL /api INICIAL
 @role_required(1)
 def get_all_users():
     try:
@@ -27,7 +27,7 @@ def get_all_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@admin_bp.route('/admin/user/<int:user_id>', methods=['DELETE']) # Quité /api
+@admin_bp.route('/admin/user/<int:user_id>', methods=['DELETE']) 
 @role_required(1)
 def delete_user(user_id):
     try:
@@ -37,7 +37,7 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@admin_bp.route('/admin/user/<int:user_id>', methods=['PUT']) # Quité /api
+@admin_bp.route('/admin/user/<int:user_id>', methods=['PUT']) 
 @role_required(1)
 def update_user(user_id):
     data = request.json
@@ -49,7 +49,7 @@ def update_user(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500      
     
-@admin_bp.route('/api/admin/dashboard-data', methods=['GET']) # Agregué /admin/ para orden
+@admin_bp.route('/admin/dashboard-data', methods=['GET']) # ELIMINADO EL /api INICIAL
 def dashboard_data_api():
     try:
         user_repo = AzureUserRepository()
