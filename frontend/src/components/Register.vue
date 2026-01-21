@@ -50,7 +50,7 @@ const form = ref({ name: '', lastname: '', email: '', password: '' });
 const handleRegister = async () => {
   loading.value = true;
   try {
-    await axios.post('/api/register', form.value);
+    await axios.post('/register', form.value);
     alert('¡Cuenta creada! Ahora puedes iniciar sesión.');
     router.push('/login');
   } catch (error) {

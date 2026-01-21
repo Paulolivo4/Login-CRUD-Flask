@@ -177,7 +177,7 @@ const calculateTotal = computed(() => {
 const processPayment = async () => {
   loading.value = true;
   try {
-    await axios.post('/api/client/reserve', {
+    await axios.post('/client/reserve', {
       email_real: form.value.email_real,
       client_name: form.value.client_name,
       restaurant_id: selectedRestaurant.value.id,

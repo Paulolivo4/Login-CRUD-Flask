@@ -164,7 +164,7 @@ onMounted(async () => {
 
 const loadDashboard = async () => {
   try {
-    const res = await axios.get('/api/owner/dashboard-data');
+    const res = await axios.get('/owner/dashboard-data');
     restaurant.value = res.data.restaurant;
     menus.value = res.data.menus;
     reservations.value = res.data.reservations;
@@ -187,7 +187,7 @@ const submitMenu = async () => {
   if (photoFile.value) formData.append('foto', photoFile.value);
 
   try {
-    await axios.post('/api/owner/menu/create', formData);
+    await axios.post('/owner/menu/create', formData);
     showModal.value = false;
     form.value = { nombre: '', descripcion: '', precio: '' }; // Reset
     await loadDashboard(); // Recargar datos
@@ -199,7 +199,7 @@ const submitMenu = async () => {
 const deleteItem = async (id) => {
   if(!confirm('¿Borrar plato?')) return;
   try {
-    await axios.delete(`/api/owner/menu/delete/${id}`);
+    await axios.delete(`/owner/menu/delete/${id}`);
     await loadDashboard();
   } catch (e) { alert('Error borrando'); }
 };

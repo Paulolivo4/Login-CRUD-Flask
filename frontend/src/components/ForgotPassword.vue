@@ -51,7 +51,7 @@ const handleForgot = async () => {
   loading.value = true;
   try {
     // Llamada al endpoint: api_forgot_password
-    await axios.post('/api/forgot-password', { email: email.value });
+    await axios.post('/forgot-password', { email: email.value });
     
     alert('Código enviado. Por favor, revisa tu bandeja de entrada.');
     

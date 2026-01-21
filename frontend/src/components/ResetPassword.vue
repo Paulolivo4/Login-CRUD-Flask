@@ -70,7 +70,7 @@ const handleReset = async () => {
 
   loading.value = true;
   try {
-    await axios.post('/api/reset-password', {
+    await axios.post('/reset-password', {
       email: email.value,
       code: form.value.code,
       newPassword: form.value.newPassword

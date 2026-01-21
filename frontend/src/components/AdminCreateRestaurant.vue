@@ -158,7 +158,7 @@ const form = ref({
 
 onMounted(async () => {
     try {
-        const res = await axios.get('/api/users/available-owners');
+        const res = await axios.get('/users/available-owners');
         availableOwners.value = res.data;
     } catch (error) {
         console.error("Error cargando dueños:", error);
@@ -197,7 +197,7 @@ const submitRestaurant = async () => {
         formData.append('logo', logoFile.value);
     }
 
-    await axios.post('/api/admin/restaurants/create', formData, {
+    await axios.post('/admin/restaurants/create', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 

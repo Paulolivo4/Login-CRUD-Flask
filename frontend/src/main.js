@@ -6,9 +6,12 @@ import router from './router'
 
 const app = createApp(App)
 
-// IMPORTANTE: baseURL ya incluye /api desde la variable de entorno
-axios.defaults.baseURL = import.meta.env.VITE_API_URL;
-axios.defaults.withCredentials = true; 
+// Configurar baseURL de axios con la URL del backend + /api
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+axios.defaults.baseURL = `${apiUrl}/api`
+axios.defaults.withCredentials = true
+
+console.log('[Axios] Base URL:', axios.defaults.baseURL)
 
 app.use(createPinia())
 app.use(router)
