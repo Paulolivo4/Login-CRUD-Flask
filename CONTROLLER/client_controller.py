@@ -11,9 +11,10 @@ def get_restaurants():
         restaurants = ClientService.get_all_restaurants()
         data = [{
             'id': getattr(r, 'ID_RESTAURANTE', None),
-            'name': getattr(r, 'NOMBRE', 'Sin nombre'),
-            'address': getattr(r, 'DIRECCION', 'Sin dirección'),
-            'image_url': getattr(r, 'RUTAFOTOLOGO', None) 
+            'nombre': getattr(r, 'NOMBRE', 'Sin nombre'),
+            'direccion': getattr(r, 'DIRECCION', 'Sin dirección'),
+            'foto': getattr(r, 'RUTAFOTOLOGO', None),
+            'horario': '09:00 - 22:00'  # Default horario
         } for r in restaurants]
         return jsonify(data), 200
     except Exception as e:
@@ -28,10 +29,10 @@ def get_menus(restaurant_id):
 
         data = [{
             'id': getattr(m, 'ID_MENU', None),
-            'name': getattr(m, 'NOMBRE_PLATO', 'Plato'),
-            'description': getattr(m, 'DESCRIPCION', ''),
-            'price': float(getattr(m, 'PRECIO', 0)),
-            'image_url': getattr(m, 'FOTO_PLATO', None)
+            'nombre': getattr(m, 'NOMBRE_PLATO', 'Plato'),
+            'descripcion': getattr(m, 'DESCRIPCION', ''),
+            'precio': float(getattr(m, 'PRECIO', 0)),
+            'foto': getattr(m, 'RUTAFOTOMENU', None)
         } for m in menus]
         return jsonify(data), 200
     except Exception as e:

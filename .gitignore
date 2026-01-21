@@ -6,4 +6,7 @@ __pycache__/
 instance/
 *.sqlite3
 *.db
-#.env local environment file
+# Local environment files - NEVER commit these!
+.env
+.env.local
+.env.*.local
