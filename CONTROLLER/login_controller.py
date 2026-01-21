@@ -71,35 +71,25 @@ def api_reset_password():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@login_bp.route('/login', methods=['POST']) # <--- Sin /api
+@login_bp.route('/login', methods=['POST'])
 def login_api():
     data = request.get_json()
-    if not data:
-        return jsonify({'error': 'Datos no enviados'}), 400
-
     email = data.get('email')
     password = data.get('password')
-
-    if not email or not password:
-        return jsonify({'error': 'Email y contraseña requeridos'}), 400
-
     user = AuthenticationService.authenticate(email, password)
 
     if user:
         session_data = AuthenticationService.extract_session_data(user, email)
         session.update(session_data)
-        
         return jsonify({
-            'message': Config.SUCCESS_MESSAGES.get('login_success', 'Bienvenido'),
+            'message': 'Bienvenido',
             'user': {
                 'email': email,
                 'role': session.get('user_role'),
                 'name': session.get('user_name')
             }
         }), 200
-    else:
-        return jsonify({'error': Config.ERROR_MESSAGES.get('invalid_credentials', 'Credenciales incorrectas')}), 401
-
+    return jsonify({'error': 'Credenciales incorrectas'}), 401
 @login_bp.route('/check_session', methods=['GET']) # <--- Sin /api
 def check_session_api():
     user_id = session.get('user_id')
