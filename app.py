@@ -16,12 +16,12 @@ def create_app():
     frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
     
     CORS(app, 
-         resources={r"/api/*": {
-             "origins": [frontend_url],
-             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-             "supports_credentials": True
-         }})
+     resources={r"/api/*": {
+         "origins": [frontend_url, "http://localhost:5173"],
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization"],
+         "supports_credentials": True
+     }})
 
     # Manejo manual de Preflight (Peticiones OPTIONS)
     @app.before_request
