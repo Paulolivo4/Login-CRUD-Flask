@@ -39,12 +39,11 @@ def create_app():
     from CONTROLLER.owner_controller import owner_bp 
     from CONTROLLER.client_controller import client_bp
 
-    app.register_blueprint(login_bp, url_prefix='/api')
-    app.register_blueprint(user_bp, url_prefix='/api')
-    app.register_blueprint(admin_bp, url_prefix='/api')
-    app.register_blueprint(owner_bp, url_prefix='/api')
-    app.register_blueprint(client_bp, url_prefix='/api')
-
+    app.register_blueprint(login_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(owner_bp)
+    app.register_blueprint(client_bp)
     @app.errorhandler(500)
     def internal_error(error):
         return jsonify({'error': 'Error interno del servidor', 'details': str(error)}), 500

@@ -4,7 +4,7 @@ from UTILS.decorators import role_required
 
 client_bp = Blueprint('client_bp', __name__)
 
-@client_bp.route('/client/restaurants', methods=['GET'])
+@client_bp.route('/api/client/restaurants', methods=['GET'])
 def get_restaurants():
     try:
         # Ahora el nombre coincide con el servicio
