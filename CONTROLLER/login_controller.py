@@ -1,7 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Blueprint, request, session, jsonify
 from SERVICES.authentication_service import AuthenticationService
-from SERVICES.user_service import UserService
-from UTILS.validators import parse_role_id
 from config import Config
 from repositories.azure_user_repository import AzureUserRepository
 from SERVICES.email_service import EmailService
@@ -12,7 +10,7 @@ login_bp = Blueprint('login_bp', __name__)
 repo = AzureUserRepository()
 
 # ==========================================
-# RUTAS API (PARA VUE.JS)
+# API PÚBLICA (SOLO JSON)
 # ==========================================
 
 @login_bp.route('/api/register', methods=['POST'])
@@ -26,7 +24,6 @@ def api_user_register():
     hashed_pw = generate_password_hash(data.get('password'))
     
     try:
-        # Nota: Asegúrate que tu repositorio tenga este método
         repo.create_user_from_registration(
             name=data.get('name'),
             lastname=data.get('lastname'),
@@ -47,9 +44,12 @@ def api_forgot_password():
         return jsonify({'error': 'No existe un usuario con ese correo'}), 404
 
     reset_code = str(random.randint(100000, 999999))
-    EmailService.send_password_reset(email, user.NAME, reset_code)
-    
-    return jsonify({'message': 'Código de recuperación enviado'}), 200
+    # Asegúrate que EmailService maneje excepciones internamente o aquí
+    try:
+        EmailService.send_password_reset(email, user.NAME, reset_code)
+        return jsonify({'message': 'Código de recuperación enviado'}), 200
+    except Exception as e:
+        return jsonify({'error': 'Error enviando correo'}), 500
 
 @login_bp.route('/api/reset-password', methods=['POST'])
 def api_reset_password():
@@ -69,7 +69,6 @@ def api_reset_password():
             return jsonify({'message': 'Contraseña actualizada correctamente'}), 200
         else:
             return jsonify({'error': 'No se pudo actualizar la contraseña'}), 500
-            
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -91,6 +90,7 @@ def login_api():
         session_data = AuthenticationService.extract_session_data(user, email)
         session.update(session_data)
         
+        # Patrón DTO implícito: Devolvemos solo lo que el front necesita
         return jsonify({
             'message': Config.SUCCESS_MESSAGES.get('login_success', 'Bienvenido'),
             'user': {
@@ -120,43 +120,3 @@ def check_session_api():
 def logout_api():
     session.clear() 
     return jsonify({'message': 'Sesión cerrada correctamente'}), 200
-
-# ==========================================
-# RUTAS ANTIGUAS (HTML - Render Template)
-# ==========================================
-
-@login_bp.route('/login')
-def login_html():
-    next_url = request.args.get('next')
-    return render_template('VIEW/login.html', next=next_url)
-
-@login_bp.route('/login/submit', methods=['POST'])
-def login_submit():
-    email = request.form.get('email')
-    password = request.form.get('password')
-    user = AuthenticationService.authenticate(email, password)
-
-    if user:
-        session_data = AuthenticationService.extract_session_data(user, email)
-        session.update(session_data)
-        role = session.get('user_role')
-        if AuthenticationService.is_admin(role):
-            return redirect(url_for('user_bp.dashboard'))
-        elif AuthenticationService.is_owner(role):
-            return redirect(url_for('owner_bp.menus'))
-        else:
-            return redirect(url_for('client_bp.menus'))
-    return redirect(url_for('login_bp.login_html'))
-
-@login_bp.route('/register')
-def register_html():
-    return render_template('VIEW/register.html')
-
-@login_bp.route('/register/submit', methods=['POST'])
-def register_submit():
-    # Lógica antigua de render template
-    return redirect(url_for('login_bp.login_html'))
-
-@login_bp.route('/reset-password')
-def reset_password_html():
-    return render_template('VIEW/reset_password.html')

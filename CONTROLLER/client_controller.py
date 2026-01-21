@@ -1,53 +1,55 @@
 from flask import Blueprint, jsonify, request, session
-from repositories.client_repository import ClientRepository
-from SERVICES.email_service import EmailService # Importamos el servicio de email
-from datetime import datetime
+from SERVICES.client_service import ClientService
+from UTILS.decorators import role_required
 
-client_bp = Blueprint('client_bp', __name__, url_prefix='/api/client')
-repo = ClientRepository()
+client_bp = Blueprint('client_bp', __name__)
 
-@client_bp.route('/restaurants', methods=['GET'])
+@client_bp.route('/api/client/restaurants', methods=['GET'])
+# @role_required(3) # Opcional: si quieres que sea público o solo clientes
 def get_restaurants():
-    data = repo.get_all_restaurants()
-    return jsonify(data), 200
-
-@client_bp.route('/menu/<int:restaurant_id>', methods=['GET'])
-def get_menu(restaurant_id):
-    data = repo.get_menu_by_restaurant(restaurant_id)
-    return jsonify(data), 200
-
-@client_bp.route('/reserve', methods=['POST'])
-def create_reservation():
-    user_id = session.get('user_id')
-    if not user_id: return jsonify({'error': 'No autorizado'}), 401
-
-    data = request.json
-    
-    # Extraer datos incluyendo el correo real
-    email_real = data.get('email_real') 
-    restaurant_id = data.get('restaurant_id')
-    menu_id = data.get('menu_id')
-    menu_name = data.get('menu_name')
-    reservation_date = data.get('date')
-    people = data.get('people')
-    total = data.get('total')
-    card_brand = data.get('card_brand', 'Tarjeta')
-
     try:
-        repo.create_reservation(
-            user_id, restaurant_id, menu_id, reservation_date, people, total, f"TARJETA-{card_brand}"
-        )
+        restaurants = ClientService.get_all_restaurants()
+        data = [{
+            'id': r.ID_RESTAURANTE,
+            'name': r.NOMBRE,
+            'address': r.DIRECCION,
+            'phone': r.TELEFONO,
+            'image_url': r.IMAGEN_URL if hasattr(r, 'IMAGEN_URL') else None
+        } for r in restaurants]
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-        # USAR EL CORREO REAL PARA EL ENVÍO
-        EmailService.send_payment_confirmation(
-            email_real, # <--- El correo que puso en el pago
-            data.get('client_name', 'Cliente'), 
-            menu_name, 
-            total, 
-            reservation_date, 
-            f"Tarjeta {card_brand}"
-        )
+@client_bp.route('/api/client/restaurant/<int:restaurant_id>/menus', methods=['GET'])
+def get_menus(restaurant_id):
+    try:
+        menus = ClientService.get_menus_by_restaurant(restaurant_id)
+        data = [{
+            'id': m.ID_MENU,
+            'name': m.NOMBRE_PLATO,
+            'description': m.DESCRIPCION,
+            'price': float(m.PRECIO),
+            'image_url': m.FOTO_PLATO
+        } for m in menus]
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-        return jsonify({'message': 'Reserva confirmada'}), 200
+@client_bp.route('/api/client/reserve', methods=['POST'])
+@role_required(3) # Solo clientes
+def create_reservation():
+    data = request.json
+    user_id = session.get('user_id')
+    
+    try:
+        # Asegúrate de pasar todos los datos necesarios al servicio
+        ClientService.create_reservation(
+            user_id=user_id,
+            menu_id=data.get('menu_id'),
+            date=data.get('date'),
+            people=data.get('people'),
+            total=data.get('total')
+        )
+        return jsonify({'message': 'Reserva creada con éxito'}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
