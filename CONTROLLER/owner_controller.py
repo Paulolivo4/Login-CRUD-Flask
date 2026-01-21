@@ -4,13 +4,15 @@ from UTILS.decorators import role_required
 
 owner_bp = Blueprint('owner_bp', __name__)
 
-@owner_bp.route('/api/owner/dashboard-data', methods=['GET'])
+# QUITAMOS el /api porque ya lo pone el app.py globalmente
+@owner_bp.route('/owner/dashboard-data', methods=['GET'])
 @role_required(2) # Solo dueños
 def get_dashboard_data():
     user_id = session.get('user_id')
     try:
-        # Supongamos que tu servicio obtiene estadísticas
+        # El servicio obtendrá las estadísticas del dueño actual
         stats = OwnerService.get_owner_stats(user_id)
         return jsonify(stats), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"DEBUG Error en owner dashboard: {e}")
+        return jsonify({'error': 'Error al cargar estadísticas del dueño', 'details': str(e)}), 500
