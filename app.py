@@ -1,4 +1,4 @@
-import os  # <--- AGREGAR ESTO AL INICIO
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import get_config
@@ -6,28 +6,23 @@ from BDD.db import db, init_app
 
 from repositories.azure_user_repository import AzureUserRepository 
 from SERVICES.user_service import configure_user_repository
-from CONTROLLER.client_controller import client_bp
 
 def create_app():
     app = Flask(__name__)
     config = get_config()
     app.config.from_object(config)
 
-    # =================================================================
-    # CORRECCIÓN CORS
-    # =================================================================
-    # Leemos la variable de entorno. Si no existe (en local), usa localhost.
+    # 1. Configuración de CORS
     frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
-    
-    print(f"--> Configurando CORS para aceptar: {frontend_url}") # Para depurar en logs
+    print(f"--> Configurando CORS para aceptar origen: {frontend_url}")
     
     CORS(app, 
          resources={r"/api/*": {"origins": frontend_url}}, 
          supports_credentials=True)
-    # =================================================================
 
     init_app(app)
 
+    # 2. Inyección de Dependencias
     with app.app_context():
         try:
             user_repo = AzureUserRepository()
@@ -36,17 +31,19 @@ def create_app():
         except Exception as e:
             print(f"--> ERROR en configuración BD: {e}")
 
-    # REGISTRO DE BLUEPRINTS
+    # 3. Registro de Blueprints con PREFIJO /api
+    # Esto asegura que todas las rutas empiecen por https://tudominio.com/api/...
     from CONTROLLER.login_controller import login_bp
     from CONTROLLER.user_bp import user_bp
     from CONTROLLER.admin_controller import admin_bp
     from CONTROLLER.owner_controller import owner_bp 
+    from CONTROLLER.client_controller import client_bp
 
-    app.register_blueprint(login_bp)
-    app.register_blueprint(user_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(client_bp)
-    app.register_blueprint(owner_bp)
+    app.register_blueprint(login_bp, url_prefix='/api')
+    app.register_blueprint(user_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api')
+    app.register_blueprint(owner_bp, url_prefix='/api')
+    app.register_blueprint(client_bp, url_prefix='/api')
 
     @app.errorhandler(500)
     def internal_error(error):
