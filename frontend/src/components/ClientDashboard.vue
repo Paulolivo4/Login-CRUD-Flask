@@ -136,15 +136,18 @@ const payment = ref({ cardNumber: '', expiry: '', cvv: '' });
 const cardBrand = ref('');
 
 onMounted(async () => {
-  const res = await axios.get('/api/client/restaurants');
+  // Llama a /client/restaurants (Axios le pega el /api al inicio automáticamente)
+  const res = await axios.get('/client/restaurants');
   restaurants.value = res.data;
 });
 
 const selectRestaurant = async (rest) => {
   selectedRestaurant.value = rest;
-  const res = await axios.get(`/api/client/menu/${rest.id}`);
+  // Ajusta esta ruta a como la tengas en tu controller de menús
+  const res = await axios.get(`/client/restaurant/${rest.id}/menus`);
   menu.value = res.data;
 };
+
 
 const openCheckout = (dish) => {
   selectedDish.value = dish;
