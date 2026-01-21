@@ -174,11 +174,11 @@ onMounted(async () => {
 const loadData = async () => {
   try {
     // 1. Cargar Usuarios
-    const usersRes = await axios.get('/api/users/dashboard');
+    const usersRes = await axios.get('/api/user/dashboard');
     users.value = usersRes.data;
 
     // 2. Cargar Estadísticas
-    const statsRes = await axios.get('/api/users/stats');
+    const statsRes = await axios.get('/api/user/stats');
     stats.value = statsRes.data;
     
     loaded.value = true;
@@ -250,11 +250,11 @@ const openModal = (mode, user = null) => {
 const submitUser = async () => {
     try {
         if (modalMode.value === 'create') {
-            await axios.post('/api/users/create', form.value);
+            await axios.post('/api/user/create', form.value);
             alert('Usuario creado!');
         } else {
             // Nota: Para editar necesitamos ID. Asegúrate que user_bp soporte PUT /update/ID
-            await axios.put(`/api/users/update/${form.value.id}`, form.value);
+            await axios.put(`/api/user/update/${form.value.id}`, form.value);
             alert('Usuario actualizado!');
         }
         showModal.value = false;
@@ -267,7 +267,7 @@ const submitUser = async () => {
 const confirmDelete = async (user) => {
     if(confirm(`¿Eliminar a ${user.name}?`)) {
         try {
-            await axios.delete(`/api/users/delete/${user.email}`);
+            await axios.delete(`/api/user/delete/${user.email}`);
             await loadData();
         } catch (error) {
             alert('Error eliminando: ' + error.message);
