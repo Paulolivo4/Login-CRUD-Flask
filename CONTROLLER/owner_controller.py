@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, request
 from SERVICES.owner_service import OwnerService
 from UTILS.decorators import role_required
 
@@ -58,3 +58,40 @@ def get_dashboard_data():
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Error al cargar estadísticas del dueño', 'details': str(e)}), 500
+
+@owner_bp.route('/owner/menu/create', methods=['POST'])
+@role_required(2)
+def create_menu():
+    user_id = session.get('user_id')
+    data = request.json
+    try:
+        # Obtener el restaurante del dueño
+        restaurant = OwnerService.get_owner_restaurant(user_id)
+        if not restaurant:
+            return jsonify({'error': 'No restaurante encontrado para este dueño'}), 400
+        
+        restaurant_id = restaurant[0]
+        
+        # Crear el menú
+        OwnerService.create_menu(
+            restaurant_id=restaurant_id,
+            dish_name=data.get('nombre'),
+            description=data.get('descripcion'),
+            price=float(data.get('precio', 0)),
+            photo_url=data.get('foto')
+        )
+        
+        return jsonify({'message': 'Plato creado correctamente'}), 201
+    except Exception as e:
+        print(f"Error creando menú: {e}")
+        return jsonify({'error': 'Error al crear plato', 'details': str(e)}), 500
+
+@owner_bp.route('/owner/menu/delete/<int:menu_id>', methods=['DELETE'])
+@role_required(2)
+def delete_menu(menu_id):
+    try:
+        OwnerService.delete_menu(menu_id)
+        return jsonify({'message': 'Plato eliminado correctamente'}), 200
+    except Exception as e:
+        print(f"Error eliminando menú: {e}")
+        return jsonify({'error': 'Error al eliminar plato', 'details': str(e)}), 500

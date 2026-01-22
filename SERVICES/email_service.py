@@ -1,20 +1,26 @@
 import smtplib
 from email.mime.text import MIMEText
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class EmailService:
-    # Credenciales centralizadas
+    # Credenciales desde variables de entorno (más seguro para producción)
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SENDER_EMAIL = "isaacpuga661@gmail.com"
-    SENDER_PASSWORD = "fxvj tbzy aoxr refw"
+    SENDER_EMAIL = os.environ.get('EMAIL_USER', 'isaacpuga661@gmail.com')
+    SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'fxvj tbzy aoxr refw')
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
         """Método privado interno para manejar el proceso de envío SMTP"""
         try:
+            # Validar que tenemos credenciales
+            if not EmailService.SENDER_EMAIL or not EmailService.SENDER_PASSWORD:
+                logger.error("Credenciales de email no configuradas")
+                return False
+            
             mensaje = MIMEText(html_content, "html", "utf-8")
             mensaje["Subject"] = asunto
             mensaje["From"] = EmailService.SENDER_EMAIL

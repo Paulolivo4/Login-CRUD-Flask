@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, session, request
 from SERVICES.user_service import UserService
 from SERVICES.authentication_service import AuthenticationService
 
-user_bp = Blueprint('user_bp', __name__, url_prefix='/api/users')
+user_bp = Blueprint('user_bp', __name__)
 
 # --- MIDDLEWARE DE SEGURIDAD ---
 def check_admin():
@@ -14,7 +14,7 @@ def check_admin():
 # =================================================================
 # 1. ENDPOINT DE ESTADÍSTICAS (PARA LOS GRÁFICOS)
 # =================================================================
-@user_bp.route('/stats', methods=['GET'])
+@user_bp.route('/users/stats', methods=['GET'])
 def get_stats():
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
 
@@ -56,7 +56,7 @@ def get_stats():
 # =================================================================
 # 2. CRUD: LEER USUARIOS (Ya lo tenías, ajustado)
 # =================================================================
-@user_bp.route('/dashboard', methods=['GET'])
+@user_bp.route('/users/dashboard', methods=['GET'])
 def list_users():
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
 
@@ -78,7 +78,7 @@ def list_users():
 # =================================================================
 # 3. CRUD: CREAR USUARIO
 # =================================================================
-@user_bp.route('/create', methods=['POST'])
+@user_bp.route('/users/create', methods=['POST'])
 def create_user():
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
     
@@ -96,7 +96,7 @@ def create_user():
 # =================================================================
 # 4. CRUD: EDITAR USUARIO
 # =================================================================
-@user_bp.route('/update/<int:user_id>', methods=['PUT'])
+@user_bp.route('/users/update/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
     
@@ -117,7 +117,7 @@ def update_user(user_id):
 # =================================================================
 # 5. CRUD: ELIMINAR USUARIO
 # =================================================================
-@user_bp.route('/delete/<email>', methods=['DELETE']) # Usamos email porque tu servicio usa email
+@user_bp.route('/users/delete/<email>', methods=['DELETE'])
 def delete_user(email):
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
 
@@ -129,7 +129,7 @@ def delete_user(email):
     
 
 # =================================================================
-@user_bp.route('/available-owners', methods=['GET'])
+@user_bp.route('/users/available-owners', methods=['GET'])
 def get_available_owners():
     # Solo admin puede ver esto
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
