@@ -139,11 +139,25 @@ def get_available_owners():
         owners_list = []
         for o in owners:
             # Procesar tupla (ID, NAME, LASTNAME, EMAIL)
-            owners_list.append({
-                'id': o[0],
-                'name': f"{o[1]} {o[2]}", # Nombre completo
-                'email': o[3]
-            })
+            # Manejar tanto tuplas como objetos Row de SQLAlchemy
+            try:
+                owner_id = o[0] if isinstance(o, (tuple, list)) else getattr(o, 'ID', None)
+                name = o[1] if isinstance(o, (tuple, list)) else getattr(o, 'NAME', '')
+                lastname = o[2] if isinstance(o, (tuple, list)) else getattr(o, 'LASTNAME', '')
+                email = o[3] if isinstance(o, (tuple, list)) else getattr(o, 'EMAIL', '')
+                
+                owners_list.append({
+                    'id': owner_id,
+                    'name': f"{name} {lastname}",  # Nombre completo
+                    'email': email
+                })
+            except Exception as item_error:
+                print(f"Error procesando owner: {item_error}")
+                continue
+        
         return jsonify(owners_list), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error en get_available_owners: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Error cargando dueños disponibles', 'details': str(e)}), 500

@@ -96,8 +96,13 @@ def get_dashboard_data():
 @role_required(2)
 def create_menu():
     user_id = session.get('user_id')
-    data = request.json
     try:
+        # Soportar tanto JSON como FormData
+        if request.is_json:
+            data = request.json
+        else:
+            data = request.form
+        
         # Obtener el restaurante del dueño
         restaurant = OwnerService.get_owner_restaurant(user_id)
         if not restaurant:
@@ -105,18 +110,26 @@ def create_menu():
         
         restaurant_id = restaurant[0]
         
+        # Obtener la foto si viene en files
+        photo_url = None
+        if 'foto' in request.files:
+            # TODO: implementar subida de archivos a cloud storage
+            pass
+        
         # Crear el menú
         OwnerService.create_menu(
             restaurant_id=restaurant_id,
             dish_name=data.get('nombre'),
             description=data.get('descripcion'),
             price=float(data.get('precio', 0)),
-            photo_url=data.get('foto')
+            photo_url=photo_url
         )
         
         return jsonify({'message': 'Plato creado correctamente'}), 201
     except Exception as e:
         print(f"Error creando menú: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Error al crear plato', 'details': str(e)}), 500
 
 @owner_bp.route('/owner/menu/delete/<int:menu_id>', methods=['DELETE'])
