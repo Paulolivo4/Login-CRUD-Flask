@@ -67,11 +67,14 @@ def create_app():
     # 2. Inyección de Dependencias
     with app.app_context():
         try:
+            print("[INIT] Iniciando repositorio de usuarios...")
             user_repo = AzureUserRepository()
             configure_user_repository(user_repo)
-            print(f"--> Backend conectado en Render")
+            print("[INIT] ✓ Backend conectado a base de datos")
         except Exception as e:
-            print(f"--> ERROR BD: {e}")
+            print(f"[INIT] ⚠️  WARNING BD (no crítico): {e}")
+            print(f"[INIT] La app continuará ejecutándose pero sin acceso a BD")
+            traceback.print_exc()
 
     # 3. Registro de Blueprints con Prefijo
     from CONTROLLER.login_controller import login_bp

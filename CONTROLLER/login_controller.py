@@ -8,7 +8,11 @@ import random
 import traceback
 
 login_bp = Blueprint('login_bp', __name__)
-repo = AzureUserRepository()
+
+# NO inicializar repo aquí - se hace dentro de cada función
+def get_repo():
+    """Obtener una instancia de repo de forma lazy"""
+    return AzureUserRepository()
 
 # ==========================================
 # API PÚBLICA (QUITAMOS EL /API MANUAL)
@@ -16,6 +20,7 @@ repo = AzureUserRepository()
 
 @login_bp.route('/register', methods=['POST']) # <--- Sin /api
 def api_user_register():
+    repo = get_repo()
     data = request.json
     email = data.get('email')
     
@@ -38,6 +43,7 @@ def api_user_register():
 
 @login_bp.route('/forgot-password', methods=['POST']) # <--- Sin /api
 def api_forgot_password():
+    repo = get_repo()
     try:
         data = request.get_json()
         if not data:
@@ -87,6 +93,7 @@ def api_forgot_password():
 
 @login_bp.route('/reset-password', methods=['POST']) # <--- Sin /api
 def api_reset_password():
+    repo = get_repo()
     data = request.json
     email = data.get('email')
     code = data.get('code')
