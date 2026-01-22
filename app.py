@@ -65,7 +65,7 @@ def create_app():
         try:
             user_repo = AzureUserRepository()
             configure_user_repository(user_repo)
-            print(f"--> Backend conectado: {frontend_url}")
+            print(f"--> Backend conectado en Render")
         except Exception as e:
             print(f"--> ERROR BD: {e}")
 
