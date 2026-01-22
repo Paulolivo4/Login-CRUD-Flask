@@ -81,9 +81,46 @@ def create_app():
     app.register_blueprint(owner_bp, url_prefix='/api')
     app.register_blueprint(client_bp, url_prefix='/api')
 
+    # Manejadores de errores globales que también respetan CORS
+    @app.errorhandler(403)
+    def forbidden(error):
+        response = jsonify({'error': 'No autorizado para realizar esta acción'})
+        response.status_code = 403
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+    @app.errorhandler(401)
+    def unauthorized(error):
+        response = jsonify({'error': 'Por favor inicia sesión para acceder'})
+        response.status_code = 401
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
     @app.errorhandler(404)
     def not_found(error):
-        return jsonify({'error': 'Ruta no encontrada'}), 404
+        response = jsonify({'error': 'Ruta no encontrada'})
+        response.status_code = 404
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        response = jsonify({'error': 'Error interno del servidor', 'details': str(error)})
+        response.status_code = 500
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
 
     return app
 
