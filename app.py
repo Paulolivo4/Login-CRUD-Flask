@@ -12,34 +12,49 @@ def create_app():
     config = get_config()
     app.config.from_object(config)
 
-    # 1. Configuración de CORS Blindada - PERMITIR TODOS LOS ORIGINS EN DESARROLLO/PRODUCCIÓN
+    # 1. Configuración de CORS con Credenciales para Render
+    # Nota: No podemos usar "*" si necesitamos credenciales
+    allowed_origins = [
+        "https://ufooodfront.onrender.com",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
+    
+    print(f"[CORS] Origins permitidos: {allowed_origins}")
+    
     CORS(app, 
-         resources={r"/*": {
-             "origins": "*",  # Permitir todos los origins - más permisivo
-             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-             "allow_headers": ["Content-Type", "Authorization", "*"],
-             "expose_headers": ["Content-Type"],
-             "supports_credentials": False,  # Cambiar a False cuando usamos "*"
-             "max_age": 3600
-         }})
+         origins=allowed_origins,
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         expose_headers=["Content-Type"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+         max_age=3600)
 
-    # Manejo manual de Preflight (Peticiones OPTIONS) y headers en todas las respuestas
+    # Manejo manual de Preflight (Peticiones OPTIONS)
     @app.before_request
     def handle_options_request():
         if request.method == 'OPTIONS':
+            origin = request.headers.get('Origin', '')
             res = make_response()
-            res.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            res.headers['Access-Control-Max-Age'] = '3600'
+            if origin in allowed_origins:
+                res.headers['Access-Control-Allow-Origin'] = origin
+                res.headers['Access-Control-Allow-Credentials'] = 'true'
+                res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+                res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+                res.headers['Access-Control-Max-Age'] = '3600'
             return res, 200
     
     # Agregar headers CORS a todas las respuestas
     @app.after_request
     def add_cors_headers(response):
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
 
     init_app(app)
