@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from SERVICES.client_service import ClientService
+from SERVICES.email_service import EmailService
 from UTILS.decorators import role_required
 
 client_bp = Blueprint('client_bp', __name__)
@@ -101,6 +102,28 @@ def create_reservation():
             reservation_date=reservation_date,
             number_of_people=int(people)
         )
+        
+        # Enviar correo de confirmación si se proporcionó
+        email_real = data.get('email_real')
+        client_name = data.get('client_name')
+        menu_name = data.get('menu_name', 'Plato')
+        total = data.get('total', '0.00')
+        card_brand = data.get('card_brand', 'Tarjeta')
+        
+        if email_real and client_name:
+            try:
+                EmailService.send_payment_confirmation(
+                    destinatario=email_real,
+                    nombre_cliente=client_name,
+                    plato=menu_name,
+                    total=total,
+                    fecha=date_str,
+                    metodo_pago=card_brand
+                )
+                print(f"[INFO] Correo de confirmación enviado a {email_real}")
+            except Exception as email_error:
+                print(f"[WARNING] Error enviando correo: {email_error}")
+                # No queremos fallar la reserva si falla el email
         
         return jsonify({'message': 'Reserva creada con éxito'}), 201
     except ValueError as ve:

@@ -1,7 +1,10 @@
 import logging
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
+from datetime import datetime, timedelta
 
 from MODEL.owner_restaurant import OwnerModel
+from MODEL.models import Reserva, Restaurante, Menu
+from BDD.db import db
 
 logger = logging.getLogger(__name__)
 
@@ -133,4 +136,60 @@ class OwnerService:
             return True
         except Exception as error:
             logger.error(f"Error creating promotion for restaurant {restaurant_id}: {error}")
+            raise
+
+    @staticmethod
+    def get_owner_stats(owner_id: int) -> Dict:
+        """Obtiene estadísticas del restaurante del propietario"""
+        try:
+            # Obtener el restaurante del owner
+            restaurant = OwnerModel.get_restaurant_by_owner(owner_id)
+            if not restaurant:
+                return {'error': 'No restaurant found for this owner'}
+            
+            restaurant_id = restaurant[0]  # ID_RESTAURANTE es el primer elemento de la tupla
+            
+            # Contar reservas totales
+            total_reservations = Reserva.query.filter_by(ID_RESTAURANTE=restaurant_id).count()
+            
+            # Contar reservas del día
+            today = datetime.now().date()
+            today_start = datetime.combine(today, datetime.min.time())
+            today_end = datetime.combine(today, datetime.max.time())
+            today_reservations = Reserva.query.filter(
+                Reserva.ID_RESTAURANTE == restaurant_id,
+                Reserva.FECHA_RESERVA >= today_start,
+                Reserva.FECHA_RESERVA <= today_end
+            ).count()
+            
+            # Ingresos totales (aproximado: sumar precios de menús * cantidad personas de reservas)
+            # Nota: Se usa cantidad de personas como proxy si no hay tabla de transacciones
+            reservations = Reserva.query.filter_by(ID_RESTAURANTE=restaurant_id).all()
+            total_revenue = 0.0
+            for res in reservations:
+                # Obtener menús del restaurante para estimar ingresos
+                menus = Menu.query.filter_by(ID_RESTAURANTE=restaurant_id).all()
+                if menus:
+                    avg_price = sum(m.PRECIO for m in menus) / len(menus)
+                    total_revenue += avg_price * res.CANTIDAD_PERSONAS
+            
+            # Menús disponibles
+            available_menus = Menu.query.filter_by(ID_RESTAURANTE=restaurant_id, DISPONIBLE=True).count()
+            
+            # Datos del restaurante
+            resto = Restaurante.query.filter_by(ID_RESTAURANTE=restaurant_id).first()
+            
+            return {
+                'restaurant_id': restaurant_id,
+                'restaurant_name': restaurant[1],  # NOMBRE
+                'total_reservations': total_reservations,
+                'today_reservations': today_reservations,
+                'total_revenue': round(total_revenue, 2),
+                'available_menus': available_menus,
+                'restaurant_address': resto.DIRECCION if resto else 'N/A',
+                'restaurant_phone': resto.TELEFONO if hasattr(resto, 'TELEFONO') and resto.TELEFONO else 'N/A'
+            }
+            
+        except Exception as error:
+            logger.error(f"Error retrieving owner stats for owner {owner_id}: {error}")
             raise
