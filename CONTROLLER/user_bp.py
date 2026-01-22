@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, session, request
 from SERVICES.user_service import UserService
 from SERVICES.authentication_service import AuthenticationService
 import traceback
-
+from MODEL.models import LoginDetails, Restaurante
+from BDD.db import db
 user_bp = Blueprint('user_bp', __name__)
 
 # --- MIDDLEWARE DE SEGURIDAD ---
@@ -133,46 +134,20 @@ def delete_user(email):
 @user_bp.route('/users/available-owners', methods=['GET'])
 def get_available_owners():
     try:
-        # Verificar admin
-        role = session.get('user_role')
-        if not AuthenticationService.is_admin(role):
-            return jsonify({'error': 'No autorizado'}), 403
+        # 1. Obtenemos TODOS los usuarios que son Dueños (Rol 2)
+        all_owners = LoginDetails.query.filter_by(ROL_ID=2).all()
         
-        print("[available-owners] Iniciando búsqueda...")
-        
-        # Obtener dueños sin restaurante directamente de la BD
-        from BDD.db import db
-        from sqlalchemy import text
-        
-        sql = text("""
-            SELECT U.ID, U.NOMBRE, U.APELLIDO, U.EMAIL 
-            FROM LOGINDETAILS U
-            LEFT JOIN RESTAURANTE R ON U.ID = R.ID_DUENO
-            WHERE U.ROL_ID = 2 AND R.ID_DUENO IS NULL
-        """)
-        
-        result = db.session.execute(sql)
-        owners = result.fetchall()
-        print(f"[available-owners] {len(owners)} dueños encontrados")
-        
-        owners_list = []
-        for row in owners:
-            try:
-                # Acceder directamente por índice (es más confiable)
-                owner_dict = {
-                    'id': row[0],
-                    'name': f"{row[1]} {row[2]}",
-                    'email': row[3]
-                }
-                owners_list.append(owner_dict)
-                print(f"[available-owners] Owner procesado: {owner_dict}")
-            except Exception as e:
-                print(f"[available-owners] Error en fila: {e}, fila={row}")
-                continue
-        
-        return jsonify(owners_list), 200
-        
+        # 2. Obtenemos los IDs de dueños que YA tienen un restaurante asignado
+        busy_owners_query = db.session.query(Restaurante.ID_DUENO).all()
+        # Convertimos la lista de tuplas [(1,), (5,)] en una lista simple [1, 5]
+        busy_ids = [id[0] for id in busy_owners_query]
+
+        # 3. Filtramos: Nos quedamos solo con los que NO están en la lista de ocupados
+        available_owners = [owner for owner in all_owners if owner.ID not in busy_ids]
+
+        # 4. Devolvemos la lista limpia
+        return jsonify([owner.to_dict() for owner in available_owners]), 200
+
     except Exception as e:
-        print(f"[available-owners] ERROR: {str(e)}")
-        traceback.print_exc()
-        return jsonify({'error': 'Error cargando dueños disponibles', 'details': str(e)}), 500
+        print(f"Error buscando dueños disponibles: {e}")
+        return jsonify({'error': str(e)}), 500

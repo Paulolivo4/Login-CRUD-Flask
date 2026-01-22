@@ -94,21 +94,22 @@ class OwnerService:
             logger.error(f"Error updating menu item {menu_id}: {error}")
             raise
 
+    # En SERVICES/owner_service.py
+
     @staticmethod
-    def delete_menu(menu_id: int) -> bool:
+    def delete_menu(menu_id):
+        # Buscamos el menú
+        menu = Menu.query.get(menu_id)
+        if not menu:
+            raise ValueError("Menu no encontrado")
         
-        if not menu_id or menu_id <= 0:
-            raise ValueError("Invalid menu ID")
-
-        try:
-            
-            OwnerModel.delete_menu(2, menu_id)
-            logger.info(f"Menu item {menu_id} deleted successfully")
-            return True
-        except Exception as error:
-            logger.error(f"Error deleting menu item {menu_id}: {error}")
-            raise
-
+        # TRUCO: No lo borramos. Solo lo marcamos como no disponible.
+        # Así el historial de ventas sigue funcionando.
+        menu.DISPONIBLE = False 
+        
+        db.session.commit()
+        return True
+    
     @staticmethod
     def create_promotion(
         restaurant_id: int,

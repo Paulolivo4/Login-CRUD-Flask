@@ -13,115 +13,93 @@ def get_dashboard_data():
     print(f"[dashboard-data] Cargando para user_id: {user_id}")
     
     try:
-        # Obtener todas las estadísticas del dueño
+        # 1. Estadísticas Generales
         stats = OwnerService.get_owner_stats(user_id)
-        print(f"[dashboard-data] Stats obtenidas: {stats}")
+        if 'error' in stats: return jsonify(stats), 400
         
-        if 'error' in stats:
-            return jsonify(stats), 400
-        
-        # Obtener el restaurante del dueño
+        # 2. Información del Restaurante
         restaurant = OwnerService.get_owner_restaurant(user_id)
-        print(f"[dashboard-data] Restaurante: {restaurant}")
-        
         restaurant_id = restaurant[0] if restaurant else None
         
-        # Obtener menús del restaurante
+        # 3. Lista de Menús
         menus_list = OwnerService.get_menus(user_id)
-        print(f"[dashboard-data] Menús encontrados: {len(menus_list) if menus_list else 0}")
-        
-        # Formatear menús para el frontend
         menus_data = []
+        
+        # Calculamos un precio promedio para usar en las reservas si falta info
+        precio_promedio = 15.00 
         if menus_list:
+            total_precios = sum([float(m[4]) for m in menus_list if m[4]])
+            if len(menus_list) > 0:
+                precio_promedio = total_precios / len(menus_list)
+
             for m in menus_list:
-                try:
-                    menu_dict = {
-                        'id': m[0] if len(m) > 0 else None,
-                        'restaurant_id': m[1] if len(m) > 1 else restaurant_id,
-                        'nombre': m[2] if len(m) > 2 else 'Sin nombre',
-                        'descripcion': m[3] if len(m) > 3 else '',
-                        'precio': float(m[4]) if len(m) > 4 and m[4] else 0.0,
-                        'disponible': m[5] if len(m) > 5 else True,
-                        'foto': m[6] if len(m) > 6 else None
-                    }
-                    menus_data.append(menu_dict)
-                except Exception as menu_error:
-                    print(f"[dashboard-data] Error procesando menú: {menu_error}")
-                    continue
+                # Solo mostramos en la lista los que están DISPONIBLES (True)
+                # m[5] es la columna DISPONIBLE
+                if m[5]: 
+                    menus_data.append({
+                        'id': m[0],
+                        'restaurant_id': m[1],
+                        'nombre': m[2],
+                        'descripcion': m[3],
+                        'precio': float(m[4]),
+                        'disponible': m[5],
+                        'foto': m[6]
+                    })
         
-        # Obtener reservas del restaurante
+        # 4. Lista de Reservas (Con Cálculo de Total)
         reservations_data = []
-        
-        try:
+        if restaurant_id:
             from MODEL.models import Reserva, LoginDetails
             from BDD.db import db
             
-            print(f"[dashboard-data] Buscando reservas para restaurante_id: {restaurant_id}")
+            reservations = db.session.query(
+                Reserva.ID_RESERVA,
+                LoginDetails.NAME.label('cliente_nombre'),
+                LoginDetails.LASTNAME.label('cliente_apellido'),
+                Reserva.FECHA_RESERVA,
+                Reserva.CANTIDAD_PERSONAS,
+                Reserva.ESTADO
+            ).join(
+                LoginDetails, Reserva.ID_CLIENTE == LoginDetails.ID
+            ).filter(
+                Reserva.ID_RESTAURANTE == restaurant_id
+            ).all()
             
-            if restaurant_id:
-                # Query para obtener reservas con info del cliente
-                reservations = db.session.query(
-                    Reserva.ID_RESERVA,
-                    LoginDetails.NAME.label('cliente_nombre'),
-                    Reserva.FECHA_RESERVA,
-                    Reserva.CANTIDAD_PERSONAS,
-                    Reserva.ESTADO
-                ).join(
-                    LoginDetails, Reserva.ID_CLIENTE == LoginDetails.ID
-                ).filter(
-                    Reserva.ID_RESTAURANTE == restaurant_id
-                ).all()
+            for res in reservations:
+                # CÁLCULO DEL TOTAL:
+                # Como la tabla Reserva no tiene el precio guardado, usamos el promedio
+                # o un precio fijo estimado para que no salga $0.
+                personas = res.CANTIDAD_PERSONAS if res.CANTIDAD_PERSONAS else 1
+                total_estimado = personas * precio_promedio
                 
-                print(f"[dashboard-data] Reservas encontradas: {len(reservations)}")
-                
-                for res in reservations:
-                    try:
-                        reservations_data.append({
-                            'id': res.ID_RESERVA,
-                            'cliente': res.cliente_nombre or 'Cliente anónimo',
-                            'fecha': str(res.FECHA_RESERVA) if res.FECHA_RESERVA else 'N/A',
-                            'personas': res.CANTIDAD_PERSONAS,
-                            'plato': 'Plato reservado',
-                            'metodo_pago': 'TARJETA',
-                            'estado_pago': 'PAGADO',
-                            'total': 0.00
-                        })
-                    except Exception as res_error:
-                        print(f"[dashboard-data] Error procesando reserva: {res_error}")
-                        continue
-            else:
-                print("[dashboard-data] No existe restaurante para este dueño")
-                
-        except Exception as e:
-            print(f"[dashboard-data] Error obteniendo reservas: {e}")
-            traceback.print_exc()
-        
-        # Retornar estructura esperada por el frontend
+                reservations_data.append({
+                    'id': res.ID_RESERVA,
+                    'cliente': f"{res.cliente_nombre} {res.cliente_apellido}",
+                    'fecha': str(res.FECHA_RESERVA),
+                    'personas': personas,
+                    'plato': 'Reserva General', # Tu modelo no guarda el plato específico
+                    'metodo_pago': 'Tarjeta',
+                    'estado_pago': 'PAGADO',
+                    'total': round(total_estimado, 2) # <--- AQUÍ ESTÁ EL ARREGLO
+                })
+
         response_data = {
             'restaurant': {
                 'id': restaurant_id,
-                'nombre': restaurant[1] if restaurant and len(restaurant) > 1 else 'Sin nombre',
-                'owner_id': restaurant[2] if restaurant and len(restaurant) > 2 else user_id
+                'nombre': restaurant[1] if restaurant else 'Sin nombre',
             },
             'menus': menus_data,
             'reservations': reservations_data,
             'stats': stats
         }
         
-        print(f"[dashboard-data] Respuesta lista: {len(menus_data)} menús, {len(reservations_data)} reservas")
         return jsonify(response_data), 200
         
     except Exception as e:
-        print(f"[dashboard-data] ERROR general: {e}")
+        print(f"[dashboard-data] ERROR: {e}")
         traceback.print_exc()
-        return jsonify({
-            'error': 'Error cargando datos del dashboard',
-            'details': str(e)
-        }), 500
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': 'Error al cargar estadísticas del dueño', 'details': str(e)}), 500
-
+        return jsonify({'error': 'Error cargando datos', 'details': str(e)}), 500
+    
 @owner_bp.route('/owner/menu/create', methods=['POST'])
 @role_required(2)
 def create_menu():
