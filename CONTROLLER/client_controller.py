@@ -71,14 +71,43 @@ def get_menus(restaurant_id):
 def create_reservation():
     data = request.json
     user_id = session.get('user_id')
+    
     try:
+        print(f"[DEBUG] Datos recibidos: {data}")
+        print(f"[DEBUG] User ID: {user_id}")
+        
+        # Validar datos esenciales
+        if not user_id:
+            return jsonify({'error': 'Usuario no autenticado'}), 401
+        
+        restaurant_id = data.get('restaurant_id')
+        date_str = data.get('date')
+        people = data.get('people')
+        
+        if not all([restaurant_id, date_str, people]):
+            return jsonify({'error': 'Faltan parámetros obligatorios'}), 400
+        
+        # Convertir la fecha (viene en formato ISO: "2024-01-21T19:30")
+        from datetime import datetime
+        try:
+            reservation_date = datetime.fromisoformat(date_str)
+        except ValueError:
+            return jsonify({'error': 'Formato de fecha inválido'}), 400
+        
+        # Crear la reserva
         ClientService.create_reservation(
-            user_id=user_id,
-            menu_id=data.get('menu_id'),
-            date=data.get('date'),
-            people=data.get('people'),
-            total=data.get('total')
+            client_id=user_id,
+            restaurant_id=int(restaurant_id),
+            reservation_date=reservation_date,
+            number_of_people=int(people)
         )
+        
         return jsonify({'message': 'Reserva creada con éxito'}), 201
+    except ValueError as ve:
+        print(f"[ERROR] Validación: {ve}")
+        return jsonify({'error': 'Datos inválidos', 'details': str(ve)}), 400
     except Exception as e:
-        return jsonify({'error': 'No pudo crearse', 'details': str(e)}), 500
+        print(f"[ERROR] create_reservation: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'No pudo crearse la reserva', 'details': str(e)}), 500
