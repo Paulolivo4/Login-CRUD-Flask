@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
         async login(email, password) {
             try {
                 // Flask usa cookies, axios las maneja con withCredentials: true
-                const response = await axios.post('/api/login', { email, password });
+                const response = await axios.post('/login', { email, password });
                 
                 this.user = response.data.user;
                 this.isAuthenticated = true;
@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', {
 
         async checkSession() {
             try {
-                const response = await axios.get('/api/check_session');
+                const response = await axios.get('/check_session');
                 this.user = response.data.user;
                 this.isAuthenticated = true;
             } catch (error) {
@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
 
         async logout() {
             try {
-                await axios.post('/api/logout');
+                await axios.post('/logout');
             } catch (e) {
                 console.error("Error en logout", e);
             } finally {
