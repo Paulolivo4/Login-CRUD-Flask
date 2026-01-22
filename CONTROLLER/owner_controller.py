@@ -18,6 +18,7 @@ def get_dashboard_data():
         
         # Obtener el restaurante del dueño
         restaurant = OwnerService.get_owner_restaurant(user_id)
+        restaurant_id = restaurant[0] if restaurant else None
         
         # Obtener menús del restaurante
         menus_list = OwnerService.get_menus(user_id)
@@ -75,7 +76,7 @@ def get_dashboard_data():
         # Retornar estructura esperada por el frontend
         response_data = {
             'restaurant': {
-                'id': restaurant[0] if restaurant else None,
+                'id': restaurant_id,
                 'nombre': restaurant[1] if restaurant else 'Sin nombre',
                 'owner_id': restaurant[2] if restaurant else user_id
             },
