@@ -7,30 +7,35 @@ import os
 logger = logging.getLogger(__name__)
 
 class EmailService:
-    # Credenciales desde variables de entorno
+    # CONFIGURACIÓN BLINDADA PARA RENDER
+    # Usamos Puerto 465 y SSL directo para evitar Timeouts
     SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 465  # <--- CAMBIO IMPORTANTE: Puerto SSL directo
+    SMTP_PORT = 465
+    
+    # Obtenemos las variables SIN valores por defecto para evitar errores silenciosos
     SENDER_EMAIL = os.environ.get('EMAIL_USER')
     SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
-        """Método privado interno para manejar el proceso de envío SMTP"""
+        """Método privado interno para manejar el proceso de envío SMTP SSL"""
         try:
-            # Validar que tenemos credenciales
+            # 1. Validación temprana de credenciales
             if not EmailService.SENDER_EMAIL or not EmailService.SENDER_PASSWORD:
-                logger.error("Credenciales de email no configuradas en Render")
+                logger.error("❌ ERROR CRÍTICO: Faltan las variables de entorno EMAIL_USER o EMAIL_PASSWORD en Render.")
                 return False
             
-            # Crear el mensaje
+            # 2. Crear el mensaje
             mensaje = MIMEMultipart()
             mensaje["Subject"] = asunto
             mensaje["From"] = EmailService.SENDER_EMAIL
             mensaje["To"] = destinatario
             mensaje.attach(MIMEText(html_content, "html", "utf-8"))
 
-            # <--- CAMBIO CRÍTICO AQUÍ: Usamos SMTP_SSL --->
-            # timeout=20 evita que se quede colgado eternamente
+            # 3. Conexión Segura (SSL) - Esto evita el bloqueo del puerto 587
+            # El timeout=20 asegura que si falla, te avise rápido y no congele la app
+            logger.info(f"Intentando conectar a Gmail por puerto {EmailService.SMTP_PORT}...")
+            
             with smtplib.SMTP_SSL(EmailService.SMTP_SERVER, EmailService.SMTP_PORT, timeout=20) as servidor:
                 servidor.login(EmailService.SENDER_EMAIL, EmailService.SENDER_PASSWORD)
                 servidor.send_message(mensaje)
@@ -38,8 +43,11 @@ class EmailService:
             logger.info(f"✅ Correo enviado exitosamente a {destinatario}")
             return True
             
+        except smtplib.SMTPAuthenticationError:
+            logger.error("❌ ERROR DE AUTENTICACIÓN: Tu correo o contraseña son incorrectos. Revisa que NO tengan espacios en Render.")
+            return False
         except Exception as e:
-            logger.error(f"❌ Error crítico enviando correo: {str(e)}")
+            logger.error(f"❌ Error enviando correo: {str(e)}")
             return False
 
     @staticmethod
@@ -50,42 +58,28 @@ class EmailService:
             <h2 style="color: #4f46e5; text-align: center;">Recuperación de Contraseña</h2>
             <hr>
             <p>Hola <strong>{nombre_usuario}</strong>,</p>
-            <p>Has solicitado restablecer tu contraseña. Utiliza el siguiente código de seguridad:</p>
+            <p>Has solicitado restablecer tu contraseña. Tu código es:</p>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
                 <h1 style="color: #1f2937; letter-spacing: 10px; margin: 0; font-family: monospace;">{codigo}</h1>
             </div>
-            <p style="font-size: 0.85rem; color: #666;">Si no solicitaste este cambio, ignora este correo.</p>
+            <p style="font-size: 0.85rem; color: #666;">Si no fuiste tú, ignora este mensaje.</p>
         </div>
         """
-        return EmailService._send_email(destinatario, "Código de Recuperación de Contraseña", html)
+        return EmailService._send_email(destinatario, "Restablecer Contraseña - Tasty App", html)
 
     @staticmethod
     def send_payment_confirmation(destinatario, nombre_cliente, plato, total, fecha, metodo_pago):
-        """Envía el comprobante de pago con el detalle de la reserva"""
+        """Envía el comprobante de pago"""
         fecha_limpia = fecha.replace('T', ' ') if 'T' in fecha else fecha
 
         html = f"""
-        <!DOCTYPE html>
-        <html lang="es">
-        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-            <div style="max-width: 600px; margin: auto; background-color: #ffffff; border: 1px solid #ddd; padding: 20px; border-radius: 12px;">
-                <h2 style="text-align: center; color: #2c3e50;">Confirmación de Reserva</h2>
-                <p style="text-align: center; color: #27ae60; font-weight: bold;">¡Pago Realizado con Éxito!</p>
-                <hr>
-                <p>Hola <strong>{nombre_cliente}</strong>, aquí tienes los detalles de tu reserva:</p>
-                <table width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; margin-top: 20px;">
-                    <tr>
-                        <td style="border: 1px solid #eee;"><strong>Platillo</strong></td>
-                        <td style="border: 1px solid #eee;">{plato}</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #eee;"><strong>Total</strong></td>
-                        <td style="border: 1px solid #eee; color: #27ae60; font-weight: bold;">${total}</td>
-                    </tr>
-                </table>
-            </div>
-        </body>
-        </html>
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 12px; max-width: 600px; margin: auto;">
+            <h2 style="text-align: center; color: #2c3e50;">¡Reserva Confirmada!</h2>
+            <p>Hola <strong>{nombre_cliente}</strong>, aquí tienes tu comprobante:</p>
+            <table width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse;">
+                <tr><td style="border-bottom:1px solid #eee;"><strong>Plato:</strong></td><td style="border-bottom:1px solid #eee;">{plato}</td></tr>
+                <tr><td style="border-bottom:1px solid #eee;"><strong>Total:</strong></td><td style="border-bottom:1px solid #eee; color: green; font-weight: bold;">${total}</td></tr>
+            </table>
+        </div>
         """
-        asunto = f"Tu comprobante de reserva: {plato}"
-        return EmailService._send_email(destinatario, asunto, html)
+        return EmailService._send_email(destinatario, f"Reserva Confirmada: {plato}", html)
