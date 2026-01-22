@@ -2,7 +2,8 @@ import smtplib
 from email.mime.text import MIMEText
 import logging
 import os
-
+from email.mime.multipart import MIMEMultipart  # <--- Faltaba esta
+from email.mime.text import MIMEText
 logger = logging.getLogger(__name__)
 
 class EmailService:
@@ -14,29 +15,41 @@ class EmailService:
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
-        """Método privado interno para manejar el proceso de envío SMTP"""
-        try:
-            # Validar que tenemos credenciales
-            if not EmailService.SENDER_EMAIL or not EmailService.SENDER_PASSWORD:
-                logger.error("Credenciales de email no configuradas")
-                return False
-            
-            mensaje = MIMEText(html_content, "html", "utf-8")
-            mensaje["Subject"] = asunto
-            mensaje["From"] = EmailService.SENDER_EMAIL
-            mensaje["To"] = destinatario
+        # Configuración fija para Gmail (Más estable)
+        SMTP_SERVER = 'smtp.gmail.com'
+        SMTP_PORT = 587
+        
+        SENDER_EMAIL = os.environ.get('EMAIL_USER')
+        SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
-            with smtplib.SMTP(EmailService.SMTP_SERVER, EmailService.SMTP_PORT) as servidor:
-                servidor.starttls()
-                servidor.login(EmailService.SENDER_EMAIL, EmailService.SENDER_PASSWORD)
-                servidor.send_message(mensaje)
-            
-            logger.info(f"Correo enviado exitosamente a {destinatario}")
-            return True
-        except Exception as e:
-            logger.error(f"Error crítico en el servidor SMTP: {e}")
+        # Verificación de seguridad
+        if not SENDER_EMAIL or not SENDER_PASSWORD:
+            print("ERROR: Faltan las credenciales EMAIL_USER o EMAIL_PASSWORD")
             return False
 
+        msg = MIMEMultipart()
+        msg['From'] = SENDER_EMAIL
+        msg['To'] = destinatario
+        msg['Subject'] = asunto
+        msg.attach(MIMEText(html_content, 'html'))
+
+        try:
+            # Usamos el bloque try/except sin 'with' para tener control total
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.ehlo()        # Saludo al servidor
+            server.starttls()    # <--- ESTO ES LA CLAVE: Encriptar conexión
+            server.ehlo()        # Saludo de nuevo (protocolo estándar)
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.send_message(msg)
+            server.quit()
+            
+            print(f"✅ Correo enviado a {destinatario}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error CRÍTICO enviando correo: {str(e)}")
+            return False
+        
     @staticmethod
     def send_password_reset(destinatario, nombre_usuario, codigo):
         """Envía el código de 6 dígitos para recuperar la cuenta"""
