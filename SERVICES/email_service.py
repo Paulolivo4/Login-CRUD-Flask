@@ -1,55 +1,47 @@
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import logging
 import os
-from email.mime.multipart import MIMEMultipart  # <--- Faltaba esta
-from email.mime.text import MIMEText
+
 logger = logging.getLogger(__name__)
 
 class EmailService:
-    # Credenciales desde variables de entorno (más seguro para producción)
+    # Credenciales desde variables de entorno
     SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587
+    SMTP_PORT = 465  # <--- CAMBIO IMPORTANTE: Puerto SSL directo
     SENDER_EMAIL = os.environ.get('EMAIL_USER')
     SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
-        # CAMBIO CRÍTICO: Usamos el puerto seguro 465
-        SMTP_SERVER = 'smtp.gmail.com'
-        SMTP_PORT = 465 
-        
-        SENDER_EMAIL = os.environ.get('EMAIL_USER')
-        SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
-
-        if not SENDER_EMAIL or not SENDER_PASSWORD:
-            print("ERROR: Faltan las credenciales EMAIL_USER o EMAIL_PASSWORD")
-            return False
-
-        msg = MIMEMultipart()
-        msg['From'] = SENDER_EMAIL
-        msg['To'] = destinatario
-        msg['Subject'] = asunto
-        msg.attach(MIMEText(html_content, 'html'))
-
+        """Método privado interno para manejar el proceso de envío SMTP"""
         try:
-            # CAMBIO IMPORTANTE: Usamos SMTP_SSL en lugar de SMTP normal.
-            # Agregamos timeout=15 para que no se quede colgado eternamente.
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+            # Validar que tenemos credenciales
+            if not EmailService.SENDER_EMAIL or not EmailService.SENDER_PASSWORD:
+                logger.error("Credenciales de email no configuradas en Render")
+                return False
             
-            # Nota: Con SMTP_SSL NO hace falta server.starttls()
+            # Crear el mensaje
+            mensaje = MIMEMultipart()
+            mensaje["Subject"] = asunto
+            mensaje["From"] = EmailService.SENDER_EMAIL
+            mensaje["To"] = destinatario
+            mensaje.attach(MIMEText(html_content, "html", "utf-8"))
+
+            # <--- CAMBIO CRÍTICO AQUÍ: Usamos SMTP_SSL --->
+            # timeout=20 evita que se quede colgado eternamente
+            with smtplib.SMTP_SSL(EmailService.SMTP_SERVER, EmailService.SMTP_PORT, timeout=20) as servidor:
+                servidor.login(EmailService.SENDER_EMAIL, EmailService.SENDER_PASSWORD)
+                servidor.send_message(mensaje)
             
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.send_message(msg)
-            server.quit()
-            
-            print(f"✅ Correo enviado a {destinatario}")
+            logger.info(f"✅ Correo enviado exitosamente a {destinatario}")
             return True
             
         except Exception as e:
-            print(f"❌ Error CRÍTICO enviando correo: {str(e)}")
+            logger.error(f"❌ Error crítico enviando correo: {str(e)}")
             return False
-        
+
     @staticmethod
     def send_password_reset(destinatario, nombre_usuario, codigo):
         """Envía el código de 6 dígitos para recuperar la cuenta"""
@@ -58,13 +50,11 @@ class EmailService:
             <h2 style="color: #4f46e5; text-align: center;">Recuperación de Contraseña</h2>
             <hr>
             <p>Hola <strong>{nombre_usuario}</strong>,</p>
-            <p>Has solicitado restablecer tu contraseña. Utiliza el siguiente código de seguridad para continuar con el proceso:</p>
+            <p>Has solicitado restablecer tu contraseña. Utiliza el siguiente código de seguridad:</p>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
                 <h1 style="color: #1f2937; letter-spacing: 10px; margin: 0; font-family: monospace;">{codigo}</h1>
             </div>
-            <p style="font-size: 0.85rem; color: #666;">Este código expirará pronto. Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
-            <hr>
-            <p style="text-align: center; font-size: 0.75rem; color: #999;">Tasty App - Gestión de Reservas</p>
+            <p style="font-size: 0.85rem; color: #666;">Si no solicitaste este cambio, ignora este correo.</p>
         </div>
         """
         return EmailService._send_email(destinatario, "Código de Recuperación de Contraseña", html)
@@ -72,7 +62,6 @@ class EmailService:
     @staticmethod
     def send_payment_confirmation(destinatario, nombre_cliente, plato, total, fecha, metodo_pago):
         """Envía el comprobante de pago con el detalle de la reserva"""
-        # Limpieza de fecha por si viene con formato 'T'
         fecha_limpia = fecha.replace('T', ' ') if 'T' in fecha else fecha
 
         html = f"""
@@ -83,32 +72,17 @@ class EmailService:
                 <h2 style="text-align: center; color: #2c3e50;">Confirmación de Reserva</h2>
                 <p style="text-align: center; color: #27ae60; font-weight: bold;">¡Pago Realizado con Éxito!</p>
                 <hr>
-                <p>Hola <strong>{nombre_cliente}</strong>, gracias por tu compra. Aquí tienes los detalles de tu reserva:</p>
-
+                <p>Hola <strong>{nombre_cliente}</strong>, aquí tienes los detalles de tu reserva:</p>
                 <table width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; margin-top: 20px;">
-                    <tr style="background-color: #f9fafb;">
+                    <tr>
                         <td style="border: 1px solid #eee;"><strong>Platillo</strong></td>
                         <td style="border: 1px solid #eee;">{plato}</td>
                     </tr>
                     <tr>
-                        <td style="border: 1px solid #eee;"><strong>Fecha y Hora</strong></td>
-                        <td style="border: 1px solid #eee;">{fecha_limpia}</td>
-                    </tr>
-                    <tr style="background-color: #f9fafb;">
-                        <td style="border: 1px solid #eee;"><strong>Método de Pago</strong></td>
-                        <td style="border: 1px solid #eee;">{metodo_pago}</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #eee;"><strong>Total Cancelado</strong></td>
-                        <td style="border: 1px solid #eee; color: #27ae60; font-weight: bold; font-size: 1.1rem;">${total}</td>
+                        <td style="border: 1px solid #eee;"><strong>Total</strong></td>
+                        <td style="border: 1px solid #eee; color: #27ae60; font-weight: bold;">${total}</td>
                     </tr>
                 </table>
-
-                <div style="margin-top: 30px; padding: 15px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
-                    <p style="margin: 0; font-size: 0.9rem; color: #92400e; text-align: center;">
-                        <strong>Nota:</strong> Presenta este comprobante digital al llegar al restaurante para validar tu reserva.
-                    </p>
-                </div>
             </div>
         </body>
         </html>
