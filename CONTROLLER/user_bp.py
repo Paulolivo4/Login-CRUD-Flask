@@ -135,29 +135,51 @@ def get_available_owners():
     if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
     
     try:
+        print("[available-owners] Iniciando búsqueda...")
         owners = UserService.get_available_owners()
+        print(f"[available-owners] Dueños encontrados: {len(owners)}")
+        print(f"[available-owners] Tipo de datos: {type(owners)}")
+        
         owners_list = []
-        for o in owners:
-            # Procesar tupla (ID, NAME, LASTNAME, EMAIL)
-            # Manejar tanto tuplas como objetos Row de SQLAlchemy
+        
+        if not owners:
+            print("[available-owners] Lista vacía de dueños")
+            return jsonify(owners_list), 200
+        
+        for idx, o in enumerate(owners):
             try:
-                owner_id = o[0] if isinstance(o, (tuple, list)) else getattr(o, 'ID', None)
-                name = o[1] if isinstance(o, (tuple, list)) else getattr(o, 'NAME', '')
-                lastname = o[2] if isinstance(o, (tuple, list)) else getattr(o, 'LASTNAME', '')
-                email = o[3] if isinstance(o, (tuple, list)) else getattr(o, 'EMAIL', '')
+                print(f"[available-owners] Procesando owner {idx}: {type(o)}, valor: {o}")
+                
+                # SQLAlchemy Row object o tupla
+                if hasattr(o, 'keys'):  # Es un Row de SQLAlchemy
+                    owner_id = o['ID'] if 'ID' in o.keys() else o[0]
+                    name = o['NAME'] if 'NAME' in o.keys() else o[1]
+                    lastname = o['LASTNAME'] if 'LASTNAME' in o.keys() else o[2]
+                    email = o['EMAIL'] if 'EMAIL' in o.keys() else o[3]
+                else:  # Es una tupla normal
+                    owner_id = o[0]
+                    name = o[1]
+                    lastname = o[2]
+                    email = o[3]
                 
                 owners_list.append({
                     'id': owner_id,
-                    'name': f"{name} {lastname}",  # Nombre completo
+                    'name': f"{name} {lastname}",
                     'email': email
                 })
+                print(f"[available-owners] Owner procesado: id={owner_id}, name={name} {lastname}")
+                
             except Exception as item_error:
-                print(f"Error procesando owner: {item_error}")
+                print(f"[available-owners] ERROR procesando owner {idx}: {item_error}")
+                import traceback
+                traceback.print_exc()
                 continue
         
+        print(f"[available-owners] Total dueños retornados: {len(owners_list)}")
         return jsonify(owners_list), 200
+        
     except Exception as e:
-        print(f"Error en get_available_owners: {e}")
+        print(f"[available-owners] ERROR general: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Error cargando dueños disponibles', 'details': str(e)}), 500

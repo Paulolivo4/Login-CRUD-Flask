@@ -1,4 +1,5 @@
 import os
+import traceback
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from config import get_config
@@ -23,13 +24,13 @@ def create_app():
     
     print(f"[CORS] Origins permitidos: {allowed_origins}")
     
-    # Configurar CORS con flask-cors
+    # Configurar CORS con flask-cors - SOLO para OPTIONS
     CORS(app, 
          origins=allowed_origins,
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],
          expose_headers=["Content-Type"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+         methods=["OPTIONS"],  # Solo manejamos OPTIONS con CORS
          max_age=3600)
 
     # Manejo manual de OPTIONS (preflight)
@@ -43,19 +44,19 @@ def create_app():
             res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
             res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
             res.headers['Access-Control-Max-Age'] = '3600'
+            print(f"[CORS] Preflight respondido para origin: {origin}")
             return res, 200
     
     # Asegurar CORS headers en TODAS las respuestas (incluso errores)
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-        else:
-            response.headers['Access-Control-Allow-Origin'] = 'https://ufooodfront.onrender.com'
+        allowed_origin = origin if origin in allowed_origins else 'https://ufooodfront.onrender.com'
+        response.headers['Access-Control-Allow-Origin'] = allowed_origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        print(f"[CORS] Headers agregados para {request.method} {request.path} - Origin: {allowed_origin}")
         return response
 
     init_app(app)
