@@ -15,14 +15,13 @@ class EmailService:
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
-        # Configuración fija para Gmail (Más estable)
+        # CAMBIO CRÍTICO: Usamos el puerto seguro 465
         SMTP_SERVER = 'smtp.gmail.com'
-        SMTP_PORT = 587
+        SMTP_PORT = 465 
         
         SENDER_EMAIL = os.environ.get('EMAIL_USER')
         SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
-        # Verificación de seguridad
         if not SENDER_EMAIL or not SENDER_PASSWORD:
             print("ERROR: Faltan las credenciales EMAIL_USER o EMAIL_PASSWORD")
             return False
@@ -34,11 +33,12 @@ class EmailService:
         msg.attach(MIMEText(html_content, 'html'))
 
         try:
-            # Usamos el bloque try/except sin 'with' para tener control total
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            server.ehlo()        # Saludo al servidor
-            server.starttls()    # <--- ESTO ES LA CLAVE: Encriptar conexión
-            server.ehlo()        # Saludo de nuevo (protocolo estándar)
+            # CAMBIO IMPORTANTE: Usamos SMTP_SSL en lugar de SMTP normal.
+            # Agregamos timeout=15 para que no se quede colgado eternamente.
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+            
+            # Nota: Con SMTP_SSL NO hace falta server.starttls()
+            
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.send_message(msg)
             server.quit()
