@@ -62,7 +62,7 @@ def get_dashboard_data():
                 # Query para obtener reservas con info del cliente
                 reservations = db.session.query(
                     Reserva.ID_RESERVA,
-                    LoginDetails.NOMBRE.label('cliente_nombre'),
+                    LoginDetails.NAME.label('cliente_nombre'),
                     Reserva.FECHA_RESERVA,
                     Reserva.CANTIDAD_PERSONAS,
                     Reserva.ESTADO

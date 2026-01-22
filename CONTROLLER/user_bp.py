@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, session, request
 from SERVICES.user_service import UserService
 from SERVICES.authentication_service import AuthenticationService
+import traceback
 
 user_bp = Blueprint('user_bp', __name__)
 
@@ -131,55 +132,47 @@ def delete_user(email):
 # =================================================================
 @user_bp.route('/users/available-owners', methods=['GET'])
 def get_available_owners():
-    # Solo admin puede ver esto
-    if not check_admin(): return jsonify({'error': 'No autorizado'}), 403
-    
     try:
+        # Verificar admin
+        role = session.get('user_role')
+        if not AuthenticationService.is_admin(role):
+            return jsonify({'error': 'No autorizado'}), 403
+        
         print("[available-owners] Iniciando búsqueda...")
-        owners = UserService.get_available_owners()
-        print(f"[available-owners] Dueños encontrados: {len(owners)}")
-        print(f"[available-owners] Tipo de datos: {type(owners)}")
+        
+        # Obtener dueños sin restaurante directamente de la BD
+        from BDD.db import db
+        from sqlalchemy import text
+        
+        sql = text("""
+            SELECT U.ID, U.NOMBRE, U.APELLIDO, U.EMAIL 
+            FROM LOGINDETAILS U
+            LEFT JOIN RESTAURANTE R ON U.ID = R.ID_DUENO
+            WHERE U.ROL_ID = 2 AND R.ID_DUENO IS NULL
+        """)
+        
+        result = db.session.execute(sql)
+        owners = result.fetchall()
+        print(f"[available-owners] {len(owners)} dueños encontrados")
         
         owners_list = []
-        
-        if not owners:
-            print("[available-owners] Lista vacía de dueños")
-            return jsonify(owners_list), 200
-        
-        for idx, o in enumerate(owners):
+        for row in owners:
             try:
-                print(f"[available-owners] Procesando owner {idx}: {type(o)}, valor: {o}")
-                
-                # SQLAlchemy Row object o tupla
-                if hasattr(o, 'keys'):  # Es un Row de SQLAlchemy
-                    owner_id = o['ID'] if 'ID' in o.keys() else o[0]
-                    name = o['NAME'] if 'NAME' in o.keys() else o[1]
-                    lastname = o['LASTNAME'] if 'LASTNAME' in o.keys() else o[2]
-                    email = o['EMAIL'] if 'EMAIL' in o.keys() else o[3]
-                else:  # Es una tupla normal
-                    owner_id = o[0]
-                    name = o[1]
-                    lastname = o[2]
-                    email = o[3]
-                
-                owners_list.append({
-                    'id': owner_id,
-                    'name': f"{name} {lastname}",
-                    'email': email
-                })
-                print(f"[available-owners] Owner procesado: id={owner_id}, name={name} {lastname}")
-                
-            except Exception as item_error:
-                print(f"[available-owners] ERROR procesando owner {idx}: {item_error}")
-                import traceback
-                traceback.print_exc()
+                # Acceder directamente por índice (es más confiable)
+                owner_dict = {
+                    'id': row[0],
+                    'name': f"{row[1]} {row[2]}",
+                    'email': row[3]
+                }
+                owners_list.append(owner_dict)
+                print(f"[available-owners] Owner procesado: {owner_dict}")
+            except Exception as e:
+                print(f"[available-owners] Error en fila: {e}, fila={row}")
                 continue
         
-        print(f"[available-owners] Total dueños retornados: {len(owners_list)}")
         return jsonify(owners_list), 200
         
     except Exception as e:
-        print(f"[available-owners] ERROR general: {e}")
-        import traceback
+        print(f"[available-owners] ERROR: {str(e)}")
         traceback.print_exc()
         return jsonify({'error': 'Error cargando dueños disponibles', 'details': str(e)}), 500
