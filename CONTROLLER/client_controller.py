@@ -20,7 +20,7 @@ def get_restaurants():
                     'id': getattr(r, 'ID_RESTAURANTE', None),
                     'nombre': getattr(r, 'NOMBRE', 'Sin nombre'),
                     'direccion': getattr(r, 'DIRECCION', 'Sin dirección'),
-                    'foto': getattr(r, 'RUTAFOTOLOGO', None),
+                    'foto': getattr(r, 'RUTAFOTOLOGO', None) or None,  # Asegurar null si no existe
                     'horario': '09:00 - 22:00'
                 }
                 data.append(resto_data)
