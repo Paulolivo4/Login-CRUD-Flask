@@ -40,6 +40,38 @@ def get_dashboard_data():
         # Por ahora, retornar lista vacía
         reservations_data = []
         
+        # Intentar obtener reservas si existen
+        try:
+            from MODEL.models import Reserva, LoginDetails
+            from BDD.db import db
+            
+            # Query para obtener reservas con info del cliente
+            reservations = db.session.query(
+                Reserva.ID_RESERVA,
+                LoginDetails.NOMBRE.label('cliente_nombre'),
+                Reserva.FECHA_RESERVA,
+                Reserva.CANTIDAD_PERSONAS,
+                Reserva.ESTADO
+            ).join(
+                LoginDetails, Reserva.ID_CLIENTE == LoginDetails.ID
+            ).filter(
+                Reserva.ID_RESTAURANTE == restaurant_id
+            ).all()
+            
+            for res in reservations:
+                reservations_data.append({
+                    'id': res.ID_RESERVA,
+                    'cliente': res.cliente_nombre or 'Cliente anónimo',
+                    'fecha': str(res.FECHA_RESERVA) if res.FECHA_RESERVA else 'N/A',
+                    'personas': res.CANTIDAD_PERSONAS,
+                    'plato': 'Plato reservado',  # TODO: obtener del menú si está disponible
+                    'metodo_pago': 'TARJETA',  # TODO: guardar en tabla RESERVA
+                    'estado_pago': 'PAGADO',  # TODO: determinar si está pagado
+                    'total': 0.00  # TODO: guardar en tabla RESERVA
+                })
+        except Exception as e:
+            print(f"Error obteniendo reservas: {e}")
+        
         # Retornar estructura esperada por el frontend
         response_data = {
             'restaurant': {
