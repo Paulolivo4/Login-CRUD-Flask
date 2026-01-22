@@ -170,3 +170,17 @@ class ClientService:
         except Exception as error:
             logger.error(f"Error retrieving restaurants: {error}")
             raise
+
+    @staticmethod
+    def get_menus_by_restaurant(restaurant_id: int) -> List[Menu]:
+        """Obtiene todos los menús disponibles de un restaurante específico."""
+        try:
+            menus = Menu.query.filter_by(
+                ID_RESTAURANTE=restaurant_id,
+                DISPONIBLE=True
+            ).all()
+            logger.info(f"Retrieved {len(menus)} menus for restaurant {restaurant_id}")
+            return menus
+        except Exception as error:
+            logger.error(f"Error retrieving menus for restaurant {restaurant_id}: {error}")
+            raise
