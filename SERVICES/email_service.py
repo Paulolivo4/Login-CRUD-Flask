@@ -9,8 +9,8 @@ class EmailService:
     # Credenciales desde variables de entorno (más seguro para producción)
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SENDER_EMAIL = os.environ.get('EMAIL_USER', 'isaacpuga661@gmail.com')
-    SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'fxvj tbzy aoxr refw')
+    SENDER_EMAIL = os.environ.get('EMAIL_USER')
+    SENDER_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
     @staticmethod
     def _send_email(destinatario, asunto, html_content):
