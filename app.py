@@ -13,7 +13,6 @@ def create_app():
     app.config.from_object(config)
 
     # 1. Configuración de CORS con Credenciales para Render
-    # Nota: No podemos usar "*" si necesitamos credenciales
     allowed_origins = [
         "https://ufooodfront.onrender.com",
         "http://localhost:5173",
@@ -24,6 +23,7 @@ def create_app():
     
     print(f"[CORS] Origins permitidos: {allowed_origins}")
     
+    # Configurar CORS con flask-cors
     CORS(app, 
          origins=allowed_origins,
          supports_credentials=True,
@@ -32,29 +32,30 @@ def create_app():
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
          max_age=3600)
 
-    # Manejo manual de Preflight (Peticiones OPTIONS)
+    # Manejo manual de OPTIONS (preflight)
     @app.before_request
-    def handle_options_request():
+    def handle_preflight():
         if request.method == 'OPTIONS':
             origin = request.headers.get('Origin', '')
             res = make_response()
-            if origin in allowed_origins:
-                res.headers['Access-Control-Allow-Origin'] = origin
-                res.headers['Access-Control-Allow-Credentials'] = 'true'
-                res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-                res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-                res.headers['Access-Control-Max-Age'] = '3600'
+            res.headers['Access-Control-Allow-Origin'] = origin if origin in allowed_origins else 'https://ufooodfront.onrender.com'
+            res.headers['Access-Control-Allow-Credentials'] = 'true'
+            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            res.headers['Access-Control-Max-Age'] = '3600'
             return res, 200
     
-    # Agregar headers CORS a todas las respuestas
+    # Asegurar CORS headers en TODAS las respuestas (incluso errores)
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin', '')
         if origin in allowed_origins:
             response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        else:
+            response.headers['Access-Control-Allow-Origin'] = 'https://ufooodfront.onrender.com'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
 
     init_app(app)
@@ -86,40 +87,25 @@ def create_app():
     def forbidden(error):
         response = jsonify({'error': 'No autorizado para realizar esta acción'})
         response.status_code = 403
-        origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     @app.errorhandler(401)
     def unauthorized(error):
         response = jsonify({'error': 'Por favor inicia sesión para acceder'})
         response.status_code = 401
-        origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     @app.errorhandler(404)
     def not_found(error):
         response = jsonify({'error': 'Ruta no encontrada'})
         response.status_code = 404
-        origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     @app.errorhandler(500)
     def internal_error(error):
+        print(f"[ERROR 500] {error}")
         response = jsonify({'error': 'Error interno del servidor', 'details': str(error)})
         response.status_code = 500
-        origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
 
     return app
