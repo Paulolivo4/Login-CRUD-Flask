@@ -182,10 +182,10 @@ class OwnerService:
             return {
                 'restaurant_id': restaurant_id,
                 'restaurant_name': restaurant[1],  # NOMBRE
-                'total_reservations': total_reservations,
+                'dishes_count': available_menus,  # Renombrar para coincidir con frontend
+                'reservations_count': total_reservations,  # Renombrar para coincidir con frontend
+                'total_sales': round(total_revenue, 2),  # Renombrar para coincidir con frontend
                 'today_reservations': today_reservations,
-                'total_revenue': round(total_revenue, 2),
-                'available_menus': available_menus,
                 'restaurant_address': resto.DIRECCION if resto else 'N/A',
                 'restaurant_phone': resto.TELEFONO if hasattr(resto, 'TELEFONO') and resto.TELEFONO else 'N/A'
             }

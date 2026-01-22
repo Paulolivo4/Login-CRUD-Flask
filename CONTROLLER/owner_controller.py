@@ -10,9 +10,51 @@ owner_bp = Blueprint('owner_bp', __name__)
 def get_dashboard_data():
     user_id = session.get('user_id')
     try:
-        # El servicio obtendrá las estadísticas del dueño actual
+        # Obtener todas las estadísticas del dueño
         stats = OwnerService.get_owner_stats(user_id)
-        return jsonify(stats), 200
+        
+        if 'error' in stats:
+            return jsonify(stats), 400
+        
+        # Obtener el restaurante del dueño
+        restaurant = OwnerService.get_owner_restaurant(user_id)
+        
+        # Obtener menús del restaurante
+        menus_list = OwnerService.get_menus(user_id)
+        
+        # Formatear menús para el frontend
+        menus_data = []
+        for m in menus_list:
+            menu_dict = {
+                'id': m[0],  # ID_MENU
+                'restaurant_id': m[1],  # ID_RESTAURANTE
+                'nombre': m[2],  # NOMBRE_PLATO
+                'descripcion': m[3],  # DESCRIPCION
+                'precio': m[4],  # PRECIO
+                'disponible': m[5],  # DISPONIBLE
+                'foto': m[6]  # RUTAFOTOMENU
+            }
+            menus_data.append(menu_dict)
+        
+        # TODO: Obtener reservas del restaurante (si existe tabla de reservas con info de cliente)
+        # Por ahora, retornar lista vacía
+        reservations_data = []
+        
+        # Retornar estructura esperada por el frontend
+        response_data = {
+            'restaurant': {
+                'id': restaurant[0] if restaurant else None,
+                'nombre': restaurant[1] if restaurant else 'Sin nombre',
+                'owner_id': restaurant[2] if restaurant else user_id
+            },
+            'menus': menus_data,
+            'reservations': reservations_data,
+            'stats': stats
+        }
+        
+        return jsonify(response_data), 200
     except Exception as e:
         print(f"DEBUG Error en owner dashboard: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Error al cargar estadísticas del dueño', 'details': str(e)}), 500
