@@ -15,7 +15,7 @@
         <h2 class="section-title">Elige un Restaurante</h2>
         <div class="grid">
           <div v-for="rest in restaurants" :key="rest.id" class="restaurant-card" @click="selectRestaurant(rest)">
-            <div class="card-image" :style="{ backgroundImage: `url(${rest.foto || 'https://via.placeholder.com/400x250?text=Restaurante'})` }"></div>
+            <div class="card-image" :style="{ backgroundImage: `url(${rest.foto || getPlaceholderImage('Restaurante')})` }"></div>
             <div class="card-info">
               <h3>{{ rest.nombre }}</h3>
               <p>📍 {{ rest.direccion }}</p>
@@ -30,7 +30,7 @@
         <h2 class="section-title">Menú de {{ selectedRestaurant.nombre }}</h2>
         <div class="grid">
           <div v-for="dish in menu" :key="dish.id" class="dish-card">
-            <div class="card-image" :style="{ backgroundImage: `url(${dish.foto || 'https://via.placeholder.com/400x250?text=Comida'})` }"></div>
+            <div class="card-image" :style="{ backgroundImage: `url(${dish.foto || getPlaceholderImage('Plato')})` }"></div>
             <div class="card-info">
               <div class="dish-header">
                 <h3>{{ dish.nombre }}</h3>
@@ -134,6 +134,12 @@ const loading = ref(false);
 const form = ref({ email_real: '', client_name: '', date: '', people: 1 });
 const payment = ref({ cardNumber: '', expiry: '', cvv: '' });
 const cardBrand = ref('');
+
+// Función para generar imágenes placeholder en SVG
+const getPlaceholderImage = (text) => {
+  const encodedText = encodeURIComponent(text);
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect fill='%23ddd' width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='.3em'%3E${encodedText}%3C/text%3E%3C/svg%3E`;
+};
 
 onMounted(async () => {
   // Llama a /client/restaurants (Axios le pega el /api al inicio automáticamente)
