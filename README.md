@@ -44,17 +44,28 @@ procfile, runtime.txt
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install Flask pyodbc gunicorn
+pip install -r requirements.txt
 python app.py
 ```
 
 Then open <http://127.0.0.1:5000/>, which redirects to `/login`.
 
-### Database
+### Configuration
 
-The connection string lives in `BDD/Conexion.py` (server, database `LOGINDB`, driver). Point it at your own SQL Server instance and create the database objects the models call: the tables and the stored procedures listed above. This repository does not include the SQL scripts.
+Settings are read from environment variables (see `.env.example`):
 
-Environment variables: `SECRET_KEY` (Flask session key; set it in production, otherwise a random key is generated on each start), `FLASK_DEBUG=1` for debug mode and `PORT` to change the port.
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `SECRET_KEY` | Flask session key. Set it in production; otherwise a random key is generated on each start | random |
+| `DB_CONNECTION_STRING` | Full ODBC connection string; overrides the variables below | none |
+| `DB_SERVER` | SQL Server host or instance | `localhost` |
+| `DB_NAME` | Database name | `LOGINDB` |
+| `DB_DRIVER` | ODBC driver | `ODBC Driver 17 for SQL Server` |
+| `DB_USER`, `DB_PASSWORD` | SQL authentication; when unset, Windows authentication is used | none |
+| `FLASK_DEBUG` | `1` enables debug mode | `0` |
+| `PORT` | Port to listen on | `5000` |
+
+Create the database objects the models call: the tables and the stored procedures listed above. This repository does not include the SQL scripts.
 
 ## Routes
 
@@ -68,9 +79,8 @@ Environment variables: `SECRET_KEY` (Flask session key; set it in production, ot
 
 ## Roadmap
 
-- [ ] Read the database settings from environment variables (the Flask `secret_key` already is)
 - [ ] Hash passwords and use a tokenized password-reset flow
-- [ ] Add SQL scripts and a `requirements.txt`
+- [ ] Add SQL scripts for the tables and stored procedures
 - [ ] Automated tests
 
 ## Authors
