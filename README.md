@@ -24,7 +24,7 @@ Role-based restaurant web app built with **Flask** and **SQL Server**. Users sig
 
 ## Tech stack
 
-Python 3.11 · Flask · Jinja2 · pyodbc (ODBC Driver 17 for SQL Server) · Gunicorn (`procfile`) for deployment on Render.
+Python 3.11 · Flask · Jinja2 · pyodbc (ODBC Driver 17 for SQL Server) · Docker and Gunicorn for deployment on Render.
 
 ## Project structure
 
@@ -67,6 +67,26 @@ Settings are read from environment variables (see `.env.example`):
 
 Create the database objects the models call: the tables and the stored procedures listed above. This repository does not include the SQL scripts.
 
+## Deploy on Render (Docker + Azure SQL)
+
+Render's Python runtime does not include the Microsoft ODBC driver that `pyodbc` needs, so the app is deployed with the included `Dockerfile` (Python 3.11, ODBC Driver 18, Gunicorn).
+
+1. Create a **Web Service** from this repository and choose **Docker** as the runtime (branch `main`).
+2. Add these environment variables in Render:
+
+   | Variable | Value |
+   | --- | --- |
+   | `SECRET_KEY` | A long random string |
+   | `DB_CONNECTION_STRING` | `DRIVER={ODBC Driver 18 for SQL Server};SERVER=tcp:<server>.database.windows.net,1433;DATABASE=<db>;UID=<user>;PWD=<password>;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;` |
+
+3. In the Azure portal, open the SQL server's **Networking** page and allow access from Render's outbound IP addresses (shown in the service's **Connect** menu).
+
+To try the image locally:
+
+```bash
+docker build -t login-crud-flask .
+docker run -p 8080:8080 -e PORT=8080 -e SECRET_KEY=dev login-crud-flask
+```
 ## Routes
 
 | Route | Description |
