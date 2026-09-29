@@ -10,7 +10,7 @@ import os
 
 app = Flask(__name__)
 
-app.secret_key = '12345678'
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
 app.register_blueprint(user_bp)
 app.register_blueprint(login_bp)
 app.register_blueprint(client_bp)

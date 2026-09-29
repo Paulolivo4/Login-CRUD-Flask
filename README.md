@@ -54,7 +54,7 @@ Then open <http://127.0.0.1:5000/>, which redirects to `/login`.
 
 The connection string lives in `BDD/Conexion.py` (server, database `LOGINDB`, driver). Point it at your own SQL Server instance and create the database objects the models call: the tables and the stored procedures listed above. This repository does not include the SQL scripts.
 
-Set `FLASK_DEBUG=1` to run in debug mode and `PORT` to change the port.
+Environment variables: `SECRET_KEY` (Flask session key; set it in production, otherwise a random key is generated on each start), `FLASK_DEBUG=1` for debug mode and `PORT` to change the port.
 
 ## Routes
 
@@ -68,7 +68,7 @@ Set `FLASK_DEBUG=1` to run in debug mode and `PORT` to change the port.
 
 ## Roadmap
 
-- [ ] Read the Flask `secret_key` and the database settings from environment variables
+- [ ] Read the database settings from environment variables (the Flask `secret_key` already is)
 - [ ] Hash passwords and use a tokenized password-reset flow
 - [ ] Add SQL scripts and a `requirements.txt`
 - [ ] Automated tests
