@@ -1,172 +1,79 @@
-# Login-CRUD-Flask 🚀🔐
+# Login-CRUD-Flask
 
-<p align="center">
-	<img alt="Login-CRUD-Flask" src="https://via.placeholder.com/900x180.png?text=Login-CRUD-Flask" width="900" />
-</p>
+Role-based restaurant web app built with **Flask** and **SQL Server**. Users sign in and are routed to a dashboard that depends on their role: **admins** register restaurants, **owners** manage menus, and **clients** manage reservations.
 
-[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Flask-3.x-orange.svg)](https://flask.palletsprojects.com/) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=flat-square&logo=flask&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=flat-square&logo=microsoftsqlserver&logoColor=white)
+![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=black)
 
----
+## Features
 
-## Índice 📚
+- **Authentication:** login, logout, registration and a password-reset form.
+- **Three roles**, each with its own blueprint and views:
 
-- [Descripción](#descripción)
-- [Estado del proyecto](#estado-del-proyecto)
-- [Características principales](#características-principales)
-- [Tecnologías / Frameworks utilizados](#tecnologías--frameworks-utilizados)
-- [Instalación (Windows - PowerShell)](#instalación-windows---powershell)
-	- [Crear y activar entorno virtual](#crear-y-activar-entorno-virtual)
-	- [Instalar dependencias](#instalar-dependencias)
-	- [Ejecutar la app](#ejecutar-la-app)
-- [Configuración de la base de datos](#configuración-de-la-base-de-datos-🔧)
-- [Rutas principales / Uso](#rutas-principales--uso-🧭)
-- [Recomendaciones de seguridad](#recomendaciones-de-seguridad-🔒)
-- [Cómo contribuir](#cómo-contribuir-🤝)
-- [Autores](#autores-👤)
-- [Licencia](#licencia-📜)
-- [FAQ y resolución de problemas](#faq-y-resolución-de-problemas-🛠️)
+  | Role (`ROL_ID`) | After login | Can do |
+  | --- | --- | --- |
+  | Admin (`1`) | `/users/dashboard` | Manage users; create and list restaurants (`/admin/restaurants`) |
+  | Owner (`2`) | `/owner/menus` | Create, edit and delete menus |
+  | Client (`3`, default) | `/client/reservations` | Create, update and delete reservations |
 
----
+- **Route protection:** admin routes check the session role and return a custom `403` page for other roles; unauthenticated users are redirected to `/login`.
+- **User CRUD** through `/users/` (create, update, delete).
+- **MVC structure** with Flask blueprints. All database access goes through SQL Server **stored procedures** (`sp_ValidateLogin`, `sp_RegistrarUsuario`, `sp_CrearRestaurante`, `sp_CrearMenu`, `sp_CrearReserva`, and others).
 
-## Descripción
+## Tech stack
 
-Proyecto de ejemplo en Flask que implementa autenticación básica (login/logout), registro de usuarios y operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre usuarios apoyándose en SQL Server a través de `pyodbc`. Es ideal como plantilla educativa y base para proyectos que necesiten un sistema de usuarios.
+Python 3.11 · Flask · Jinja2 · pyodbc (ODBC Driver 17 for SQL Server) · Gunicorn (`procfile`) for deployment on Render.
 
----
+## Project structure
 
-## Estado del proyecto
-
-- ✅ Funcional para pruebas locales
-- 🔧 En desarrollo: mejoras de seguridad (hash de contraseñas, tokens), tests automáticos y despliegue
-
----
-
-## Características principales
-
-- Login / Logout ✔️  
-- Registro de usuarios ✔️  
-- Listado de usuarios desde SQL Server ✔️  
-- Crear / Actualizar / Eliminar usuarios (CRUD) ✔️  
-- Restablecimiento de contraseña vía formulario público ✔️  
-- Protección de rutas que requieren sesión (no accesibles por URL sin login) ✔️
-
----
-
-## Tecnologías / Frameworks utilizados 🧩
-
-- Python 3.11+ 🐍  
-- Flask (web framework) ⚗️  
-- Jinja2 (templates) 🧾  
-- pyodbc (conector ODBC a SQL Server) 🗄️  
-- ODBC Driver for SQL Server (Windows) — instalado en el sistema 🪟
-
----
-
-## Instalación (Windows - PowerShell) ⚙️
-
-Abre PowerShell en la carpeta del proyecto:
-
-```powershell
-Set-Location 'C:\Users\User\Desktop\Ingeniería web\LOGIN-FLASK'
+```
+app.py               # Flask app, blueprint registration, 403 handler
+BDD/Conexion.py      # SQL Server connection (pyodbc)
+CONTROLLER/          # Blueprints: login, user, admin, owner, client
+MODEL/               # Data access via stored procedures
+templates/VIEW/      # Jinja2 views (login, dashboards, menus, reservations)
+procfile, runtime.txt
 ```
 
-### 1) Crear y activar entorno virtual
+## Getting started
+
+**Requirements:** Python 3.11+, a SQL Server instance reachable from your machine, and the [Microsoft ODBC Driver 17 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server).
 
 ```powershell
-# Crear entorno
 python -m venv .venv
-
-# Activar (PowerShell)
 .\.venv\Scripts\Activate.ps1
-```
-
-### 2) Actualizar pip e instalar dependencias
-
-```powershell
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-> Si `requirements.txt` no existe o quieres instalar manualmente:
-> ```powershell
-> pip install Flask pyodbc
-> ```
-
-### 3) Ejecutar la aplicación
-
-```powershell
+pip install Flask pyodbc gunicorn
 python app.py
 ```
 
-- Abre en el navegador: `http://127.0.0.1:5000/` (te redirige a `/login`).
-- Para detener el servidor: presiona `Ctrl+C` en la terminal.
+Then open <http://127.0.0.1:5000/>, which redirects to `/login`.
 
----
+### Database
 
-## Configuración de la base de datos 🔧
+The connection string lives in `BDD/Conexion.py` (server, database `LOGINDB`, driver). Point it at your own SQL Server instance and create the database objects the models call: the tables and the stored procedures listed above. This repository does not include the SQL scripts.
 
-El proyecto incluye archivos en `BDD/` que leen `BDD/DatabaseConfig.txt`. Formato de ejemplo:
+Set `FLASK_DEBUG=1` to run in debug mode and `PORT` to change the port.
 
-```
-server=DESKTOP-XXXXXXX
-database=LOGINDB
-driver=ODBC Driver 17 for SQL Server
-```
+## Routes
 
-- Asegúrate de que SQL Server está accesible desde la máquina.
-- Instala el driver ODBC de Microsoft (por ejemplo: ODBC Driver 17 for SQL Server). En Windows se descarga desde el sitio de Microsoft.
-- Las consultas en el modelo (`MODEL/User.PY`) usan stored procedures (ej.: `sp_GetAllLoginDetails`, `sp_InsertLoginDetails`, `sp_UpdateLoginDetails`, `sp_DeleteLoginDetails`). 
----
+| Route | Description |
+| --- | --- |
+| `/login`, `/register`, `/logout`, `/reset-password` | Authentication |
+| `/users/`, `/users/dashboard` | User management (admin) |
+| `/admin/restaurants` | Create and list restaurants (admin) |
+| `/owner/menus` | Menu CRUD (owner) |
+| `/client/reservations` | Reservation CRUD (client) |
 
-## Rutas principales / Uso 🧭
+## Roadmap
 
-- `/` → Redirige a `/login`
-- `/login` → Formulario de inicio de sesión
-- `/login/submit` → Procesa inicio de sesión
-- `/register` → Formulario de registro
-- `/register/submit` → Crear nuevo usuario
-- `/reset-password` → Formulario público para restablecer contraseña
-- `/reset-password/submit` → Actualiza contraseña en DB
-- `/users/` → Lista de usuarios (REQUIERE sesión)
-- `/users/create`, `/users/update`, `/users/delete` → Operaciones CRUD (métodos POST)
+- [ ] Read the Flask `secret_key` and the database settings from environment variables
+- [ ] Hash passwords and use a tokenized password-reset flow
+- [ ] Add SQL scripts and a `requirements.txt`
+- [ ] Automated tests
 
-> Nota: rutas del blueprint de usuarios (`/users/`) están protegidas; si intentas acceder sin sesión verás un 403 o serás redirigido al login según configuración.
+## Authors
 
----
-
-## Recomendaciones de seguridad 🔒
-
-- ¡NO subas credenciales al repositorio! Añade `BDD/DatabaseConfig.txt` a `.gitignore` si contiene secretos.
-- Almacena contraseñas con hash (bcrypt). Actualmente la app puede comparar texto plano según la DB existente — actualizar a hashes es PRIORITARIO antes de producción.
-- Usa HTTPS en producción.
-- Protege rutas sensibles y valida todas las entradas del usuario (sanitización).
-- Usa tokens (email token) para restablecer contraseñas en lugar de permitir cambios directos desde un formulario público.
-
-## Autores 👤
-
-- Paulolivo4 — desarrollador 
-- Isaaidk - desarrollador 
-
----
-
-## Licencia 📜
-
-El proyecto no trae licencia por defecto. 
-
----
-
-## FAQ y resolución de problemas 🛠️
-
-Q: `pyodbc` falla al instalar o conectar  
-A: Asegúrate de instalar el ODBC Driver de Microsoft para SQL Server (ej. Driver 17). Reinicia la máquina si es necesario.
-
-Q: `git` no se reconoce en PowerShell  
-A: Instala **Git for Windows** desde https://git-scm.com/download/win y reinicia PowerShell.
-
-Q: Al acceder a `/users/` veo 403  
-A: Estás intentando acceder sin inicio de sesión. Ve a `/login` o crea una cuenta en `/register`.
-
-Q: ¿Cómo oculto mis credenciales antes de subir a GitHub?  
-A: Añade `BDD/DatabaseConfig.txt` a `.gitignore` y mueve las credenciales a variables de entorno o a `.env` (no versionar `.env`).
-
----
+- [@Paulolivo4](https://github.com/Paulolivo4)
+- [@Isaaidk](https://github.com/Isaaidk)
